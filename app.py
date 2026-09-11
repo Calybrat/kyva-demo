@@ -1,0 +1,120 @@
+import sys
+from pathlib import Path
+
+import streamlit as st
+
+sys.path.insert(0, str(Path(__file__).parent))
+from utils.formatters import (CSS, HEADER_CSS, asset_b64, motivo_svg,
+                              PRIMARIO, CLARO, PALIDO, ACENTO, TINTA)
+from utils.visitas import registrar_visita, panel_solicitado, render_panel_visitas
+
+st.set_page_config(
+    page_title="KYVA · Panel de Negocio | Calybrat",
+    page_icon="🥂",
+    layout="wide",
+)
+
+# El demo es de acceso libre: solo se deja constancia de la visita.
+registrar_visita()
+
+st.markdown(CSS + HEADER_CSS, unsafe_allow_html=True)
+
+# Agrupado por la PREGUNTA que se hace el equipo de KYVA, no por el área que
+# produce el dato. KYVA gana plata por cuatro vías con márgenes muy distintos
+# (The Store, The Lounge, corporativo y distribución), así que casi todo el
+# panel gira alrededor de una sola pregunta: ¿crecer nos está dejando plata?
+GRUPOS = [
+    ("El lunes a las 7", [
+        ("🏠  Tablero Ejecutivo", "p01_tablero"),
+    ]),
+    ("¿Crecer nos deja plata?", [
+        ("💸  Dónde se va el margen", "p02_margen"),
+        ("🧭  Los cuatro negocios", "p03_canales"),
+        ("🏦  Caja y capital de trabajo", "p04_caja"),
+    ]),
+    ("¿Quién compra y vuelve?", [
+        ("🔁  Recompra y cohortes", "p05_recompra"),
+        ("🥂  Membresía Elite", "p06_elite"),
+        ("🤝  Alianzas B2B2C", "p07_alianzas"),
+        ("⭕  Mi Círculo", "p08_circulo"),
+    ]),
+    ("¿Qué vendemos y a qué precio?", [
+        ("🍾  Surtido y rotación", "p09_surtido"),
+        ("🏷️  Precio vs. competencia", "p10_precios"),
+        ("🚚  Marcas en distribución", "p11_distribucion"),
+    ]),
+    ("¿Llegamos a tiempo?", [
+        ("⏱️  Pide AM, recibe PM", "p12_entregas"),
+    ]),
+    ("¿Qué viene?", [
+        ("🎄  Temporada de fin de año", "p13_temporada"),
+    ]),
+    ("Dirección", [
+        ("📄  Reportes Automáticos", "p14_reportes"),
+        ("🤖  Agente IA KYVA", "p15_agente"),
+    ]),
+]
+PAGES = {label: mod for _, items in GRUPOS for label, mod in items}
+
+with st.sidebar:
+    logo = asset_b64("logo_blanco.svg")
+    logo_html = (f'<img src="{logo}" style="height:64px;width:64px" alt="KYVA">'
+                 if logo else
+                 '<div style="font-size:24px;font-weight:900;color:#fff">KYVA</div>')
+    st.markdown(f"""
+    <div style="padding:14px 4px 4px">
+      {logo_html}
+      <div style="font-size:9.5px;color:{CLARO};margin-top:12px;font-weight:700;
+        letter-spacing:.18em;text-transform:uppercase;font-family:Montserrat,sans-serif">
+        Panel de negocio</div>
+      <div style="font-family:'DM Serif Display',Georgia,serif;font-size:15px;
+        color:{PALIDO};margin-top:2px;font-style:italic">join the circle</div>
+      <div style="font-size:10.5px;color:{CLARO};margin-top:4px">corte 31 ago 2026</div>
+      <div style="height:2px;border-radius:99px;margin:13px 0 2px;
+        background:linear-gradient(90deg,{PALIDO} 0%,{CLARO} 50%,{ACENTO} 80%,transparent)"></div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if "page" not in st.session_state:
+        st.session_state.page = list(PAGES.keys())[0]
+
+    for grupo, items in GRUPOS:
+        st.markdown(
+            f'<div style="font-size:9px;font-weight:700;letter-spacing:.16em;'
+            f'text-transform:uppercase;color:{CLARO};margin:15px 0 5px 4px;'
+            f'font-family:Montserrat,sans-serif">{grupo}</div>',
+            unsafe_allow_html=True)
+        for label, _mod in items:
+            if st.button(label, key=f"nav_{label}", width="stretch"):
+                st.session_state.page = label
+
+    st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+    st.markdown(f"""
+    <div style="padding:16px 16px 10px;text-align:center;
+      border-top:1px solid rgba(229,225,230,.12)">
+      <div style="margin-bottom:9px;opacity:.85">
+        {motivo_svg(PALIDO, 26)} {motivo_svg(ACENTO, 18)}
+      </div>
+      <div style="font-size:10.5px;color:{CLARO};margin-bottom:2px">Construido por</div>
+      <div style="font-size:15px;font-weight:800;color:#fff;letter-spacing:.4px;
+        font-family:Montserrat,sans-serif">Calybrat</div>
+      <div style="font-size:9.5px;color:{CLARO};margin-top:5px;line-height:1.55">
+        © 2026 · Demo con datos simulados<br>anclados a cifras públicas
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# ── Panel interno de accesos (solo con ?accesos=… en la URL) ──────────────────
+if panel_solicitado():
+    render_panel_visitas()
+    st.stop()
+
+# ── Módulo activo ─────────────────────────────────────────────────────────────
+module_name = PAGES[st.session_state.page]
+try:
+    mod = __import__(f"modules.{module_name}", fromlist=[module_name])
+    mod.render()
+except Exception as e:
+    st.error(f"Error cargando módulo: {e}")
+    import traceback
+    st.code(traceback.format_exc())

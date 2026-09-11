@@ -1,0 +1,448 @@
+sku,nombre,categoria,marca,proveedor,ml,precio_classic,precio_elite,pvp_mercado,costo_unit,exclusiva,precio_observado,unidades_90d,stock_u
+KY-0001,Whisky Chivas Regal 12 años,Whisky,Chivas Regal,Pernod Ricard,1000,184800.0,155600.0,195400.0,139280.0,False,True,136,108
+KY-0002,Whisky Chivas Regal Extra,Whisky,Chivas Regal,Pernod Ricard,1000,210600.0,177300.0,224800.0,167930.0,False,True,81,63
+KY-0003,Whisky The Glenlivet Founders Reserve,Whisky,The Glenlivet,Pernod Ricard,700,166100.0,139800.0,169100.0,124900.0,False,True,2739,1441
+KY-0004,Whisky The Glenlivet 12 años,Whisky,The Glenlivet,Pernod Ricard,700,195800.0,177300.0,197000.0,152370.0,False,True,196,85
+KY-0005,Whisky Buchanan's Deluxe 12 años + 200 ml,Whisky,Buchanan's,Diageo,950,165000.0,158100.0,174300.0,136860.0,False,True,87,67
+KY-0006,Whisky Jack Daniel's Old No. 7,Whisky,Jack Daniel's,Otros importadores,1000,183300.0,173100.0,189000.0,136850.0,False,True,225,136
+KY-0007,Whisky Jack Daniel's Old No. 7 200 ml,Whisky,Jack Daniel's,Otros importadores,200,39900.0,37300.0,41100.0,30280.0,False,True,112,69
+KY-0008,Whisky Old Parr 12 años,Whisky,Old Parr,Diageo,500,110200.0,104400.0,119700.0,88090.0,False,True,412,296
+KY-0009,Whisky Glenfiddich 12 años 50 ml,Whisky,Glenfiddich,Otros importadores,50,26000.0,25200.0,27400.0,19230.0,False,True,305,250
+KY-0010,Ginebra Beefeater London Dry,Ginebra,Beefeater,Pernod Ricard,700,140600.0,118400.0,143300.0,100160.0,False,True,122,77
+KY-0011,Ron Defensor 12 años,Ron,Defensor,Distribución KYVA,700,265900.0,247300.0,283800.0,173600.0,True,True,440,332
+KY-0012,Ron Medellín Dorado 750 ml,Ron,Ron Medellín,Otros importadores,750,49200.0,48400.0,53500.0,37990.0,False,True,61,50
+KY-0013,Ron Medellín Dorado 375 ml,Ron,Ron Medellín,Otros importadores,375,27000.0,26500.0,29200.0,20860.0,False,True,94,58
+KY-0014,Aguardiente Antioqueño Real 375 ml,Aguardiente,Antioqueño,Otros importadores,375,24500.0,24500.0,24900.0,19750.0,False,True,64,42
+KY-0015,Aguardiente Mil Demonios 700 ml,Aguardiente,Mil Demonios,Distribución KYVA,700,111000.0,99300.0,116100.0,76540.0,True,True,73,1200
+KY-0016,Aguardiente Mil Demonios 375 ml,Aguardiente,Mil Demonios,Distribución KYVA,375,59700.0,53400.0,61200.0,35730.0,True,True,798,0
+KY-0017,Cerveza Club Colombia x6,Cerveza,Club Colombia,Bavaria,1980,23400.0,20600.0,23600.0,16680.0,False,True,375,265
+KY-0018,Cerveza Stella Artois lata x6,Cerveza,Stella Artois,Bavaria,1614,25000.0,23900.0,25600.0,18180.0,False,True,388,254
+KY-0019,"Cerveza Heineken 0,0 x6",Cerveza,Heineken,Otros importadores,1500,23200.0,21500.0,24800.0,17970.0,False,True,1483,620
+KY-0020,Red Bull Sin Azúcar x4,Mixers y aguas,Red Bull,Otros importadores,1000,36200.0,32700.0,39100.0,22860.0,False,True,268,185
+KY-0021,Agua Hatsu con gas x6,Mixers y aguas,Hatsu,Otros importadores,1800,18000.0,16200.0,18200.0,10830.0,False,True,628,394
+KY-0022,Agua Hatsu sin gas x6,Mixers y aguas,Hatsu,Otros importadores,3000,23600.0,21300.0,23900.0,15020.0,False,True,212,132
+KY-0023,Whisky Glenfiddich 15 años,Whisky,Glenfiddich,Otros importadores,700,260700.0,248400.0,277700.0,196710.0,False,False,15,8
+KY-0024,Whisky Monkey Shoulder,Whisky,Monkey Shoulder,Otros importadores,700,175100.0,156100.0,187800.0,135900.0,False,False,11,7
+KY-0025,Whisky Buchanan's Two Souls,Whisky,Buchanan's,Diageo,700,249400.0,208200.0,269700.0,191010.0,False,False,0,16
+KY-0026,Whisky The Glenlivet Caribbean Reserve,Whisky,The Glenlivet,Pernod Ricard,700,148900.0,137600.0,150400.0,112910.0,False,False,3,2
+KY-0027,Whisky Johnnie Walker 18 años,Whisky,Johnnie Walker,Diageo,700,488900.0,455200.0,500900.0,400480.0,False,False,15,11
+KY-0028,Whisky Johnnie Walker Red Label,Whisky,Johnnie Walker,Diageo,700,86800.0,76100.0,92800.0,66660.0,False,False,0,13
+KY-0029,Whisky Buchanan's Master,Whisky,Buchanan's,Diageo,700,216200.0,189400.0,230100.0,169870.0,False,False,18,12
+KY-0030,Whisky Dewar's 15 años,Whisky,Dewar's,Bacardí,700,274300.0,265400.0,289100.0,219810.0,False,False,93,73
+KY-0031,Whisky Royal Salute 21 años Polo,Whisky,Royal Salute,Pernod Ricard,700,1061600.0,978000.0,1075600.0,787660.0,False,False,6,4
+KY-0032,Whisky Bulleit Bourbon,Whisky,Bulleit,Diageo,700,137800.0,116700.0,146000.0,107850.0,False,False,16,11
+KY-0033,Whisky Chivas Regal 18 años,Whisky,Chivas Regal,Pernod Ricard,700,488500.0,421900.0,499300.0,363560.0,False,False,7,6
+KY-0034,Whisky Macallan 12 Double Cask,Whisky,Macallan,Otros importadores,700,357900.0,335100.0,373100.0,270500.0,False,False,42,20
+KY-0035,Whisky Glenfiddich 12 años,Whisky,Glenfiddich,Otros importadores,700,196700.0,191400.0,197000.0,152680.0,False,False,0,9
+KY-0036,Whisky The Glenlivet 18 años,Whisky,The Glenlivet,Pernod Ricard,700,652200.0,589800.0,702500.0,528040.0,False,False,7,6
+KY-0037,Whisky Royal Salute 21 años,Whisky,Royal Salute,Pernod Ricard,700,893200.0,840400.0,942800.0,672950.0,False,False,7,5
+KY-0038,Whisky Jack Daniel's Single Barrel,Whisky,Jack Daniel's,Otros importadores,700,159800.0,145400.0,170800.0,121180.0,False,False,28,16
+KY-0039,Whisky Black & White,Whisky,Black & White,Diageo,700,68700.0,63400.0,74800.0,52300.0,False,False,28,14
+KY-0040,Whisky Talisker 10 años,Whisky,Talisker,Diageo,700,204400.0,181700.0,218000.0,151050.0,False,False,1,1
+KY-0041,Whisky Jack Daniel's Honey,Whisky,Jack Daniel's,Otros importadores,700,169400.0,152800.0,175900.0,133350.0,False,False,15,12
+KY-0042,Whisky Glenmorangie 10 años,Whisky,Glenmorangie,Otros importadores,700,182400.0,175700.0,191700.0,135880.0,False,False,2,2
+KY-0043,Whisky Woodford Reserve,Whisky,Woodford Reserve,Otros importadores,700,181100.0,164700.0,195200.0,144980.0,False,False,25,18
+KY-0044,Whisky Old Parr Silver,Whisky,Old Parr,Diageo,700,151700.0,135600.0,160100.0,117330.0,False,False,9,8
+KY-0045,Whisky Buchanan's 18 años,Whisky,Buchanan's,Diageo,700,646700.0,580600.0,701700.0,463180.0,False,False,7,5
+KY-0046,Whisky Johnnie Walker Double Black,Whisky,Johnnie Walker,Diageo,700,142300.0,129000.0,149900.0,101830.0,False,False,20,9
+KY-0047,Whisky Macallan 18 Sherry Oak,Whisky,Macallan,Otros importadores,700,1051800.0,1018400.0,1126700.0,789580.0,False,False,0,4
+KY-0048,Whisky Ballantine's Finest,Whisky,Ballantine's,Pernod Ricard,700,93700.0,89400.0,95700.0,74060.0,False,False,0,7
+KY-0049,Whisky The Glenlivet 15 años,Whisky,The Glenlivet,Pernod Ricard,700,292100.0,258100.0,300700.0,222850.0,False,False,17,10
+KY-0050,Whisky Aberlour 12 años,Whisky,Aberlour,Pernod Ricard,700,183600.0,167900.0,197600.0,135440.0,False,False,40,21
+KY-0051,Whisky Jameson,Whisky,Jameson,Pernod Ricard,700,80400.0,73800.0,83400.0,60610.0,False,False,11,6
+KY-0052,Whisky Johnnie Walker Black Label,Whisky,Johnnie Walker,Diageo,700,123800.0,109800.0,126900.0,93630.0,False,False,68,43
+KY-0053,Whisky Jameson Black Barrel,Whisky,Jameson,Pernod Ricard,700,88500.0,76400.0,96000.0,66690.0,False,False,14,11
+KY-0054,Whisky Glenfiddich 18 años,Whisky,Glenfiddich,Otros importadores,700,442300.0,416400.0,477700.0,342540.0,False,False,0,19
+KY-0055,Whisky Johnnie Walker Gold Reserve,Whisky,Johnnie Walker,Diageo,700,157800.0,133500.0,164700.0,115970.0,False,False,3,2
+KY-0056,Whisky Dewar's 12 años,Whisky,Dewar's,Bacardí,700,84500.0,82800.0,89700.0,66790.0,False,False,38,19
+KY-0057,Whisky Old Parr 18 años,Whisky,Old Parr,Diageo,700,456600.0,392900.0,458400.0,355790.0,False,False,2,2
+KY-0058,Whisky Chivas Regal Mizunara,Whisky,Chivas Regal,Pernod Ricard,700,610000.0,535300.0,633400.0,497630.0,False,False,47,31
+KY-0059,Whisky Maker's Mark,Whisky,Maker's Mark,Otros importadores,700,135500.0,124600.0,144000.0,107430.0,False,False,19,9
+KY-0060,Whisky The Singleton 12 años,Whisky,The Singleton,Diageo,700,185100.0,157400.0,189800.0,148800.0,False,False,0,5
+KY-0061,Whisky Jack Daniel's Gentleman Jack,Whisky,Jack Daniel's,Otros importadores,700,148700.0,135700.0,159800.0,113270.0,False,False,386,311
+KY-0062,Whisky Ballantine's 12 años,Whisky,Ballantine's,Pernod Ricard,700,82000.0,73500.0,82600.0,62330.0,False,False,29,20
+KY-0063,Whisky Lagavulin 16 años,Whisky,Lagavulin,Diageo,700,351200.0,311300.0,371400.0,274650.0,False,False,39,25
+KY-0064,Whisky Jack Daniel's Fire,Whisky,Jack Daniel's,Otros importadores,700,198200.0,185000.0,212700.0,160110.0,False,False,27,15
+KY-0065,Whisky Dewar's White Label,Whisky,Dewar's,Bacardí,700,71500.0,66200.0,72000.0,53910.0,False,False,9,6
+KY-0066,Whisky Macallan 15 Double Cask,Whisky,Macallan,Otros importadores,700,524400.0,485300.0,542100.0,395460.0,False,False,11,5
+KY-0067,Whisky Something Special,Whisky,Something Special,Pernod Ricard,700,58100.0,53900.0,61400.0,46290.0,False,False,10,8
+KY-0068,Whisky Johnnie Walker Blue Label,Whisky,Johnnie Walker,Diageo,700,909300.0,891100.0,936800.0,676200.0,False,False,14,11
+KY-0069,Whisky Royal Salute 21 años 1000 ml,Whisky,Royal Salute,Pernod Ricard,1000,1205900.0,1057300.0,1285000.0,861180.0,False,False,94,64
+KY-0070,Whisky Johnnie Walker Gold Reserve 1000 ml,Whisky,Johnnie Walker,Diageo,1000,478000.0,424800.0,489300.0,379010.0,False,False,10,7
+KY-0071,Whisky Macallan 18 Sherry Oak 1000 ml,Whisky,Macallan,Otros importadores,1000,800800.0,773600.0,864900.0,682660.0,False,False,0,14
+KY-0072,Whisky Talisker 10 años 1000 ml,Whisky,Talisker,Diageo,1000,254600.0,234400.0,269600.0,199850.0,False,False,0,11
+KY-0073,Whisky Woodford Reserve 1000 ml,Whisky,Woodford Reserve,Otros importadores,1000,299700.0,277800.0,322100.0,230410.0,False,False,0,7
+KY-0074,Whisky Jack Daniel's Fire 1000 ml,Whisky,Jack Daniel's,Otros importadores,1000,163900.0,160000.0,175300.0,117070.0,False,False,23,16
+KY-0075,Whisky Johnnie Walker 18 años 1000 ml,Whisky,Johnnie Walker,Diageo,1000,684900.0,581900.0,723700.0,524160.0,False,False,4,3
+KY-0076,Whisky Jack Daniel's Gentleman Jack 1000 ml,Whisky,Jack Daniel's,Otros importadores,1000,201700.0,191000.0,202400.0,159430.0,False,False,1,1
+KY-0077,Whisky Black & White 1000 ml,Whisky,Black & White,Diageo,1000,69500.0,57000.0,72600.0,53590.0,False,False,0,19
+KY-0078,Whisky Something Special 1000 ml,Whisky,Something Special,Pernod Ricard,1000,91500.0,84700.0,96800.0,69180.0,False,False,23,11
+KY-0079,Whisky Jack Daniel's Honey 1000 ml,Whisky,Jack Daniel's,Otros importadores,1000,261800.0,243100.0,268600.0,208950.0,False,False,20,9
+KY-0080,Whisky Old Parr 18 años 1000 ml,Whisky,Old Parr,Diageo,1000,559300.0,491300.0,605400.0,430410.0,False,False,34,23
+KY-0081,Whisky Jameson 1000 ml,Whisky,Jameson,Pernod Ricard,1000,227500.0,186000.0,229200.0,178340.0,False,False,91,37
+KY-0082,Whisky Ballantine's 12 años 1000 ml,Whisky,Ballantine's,Pernod Ricard,1000,91600.0,81200.0,94900.0,70680.0,False,False,17,9
+KY-0083,Whisky Glenfiddich 18 años 1000 ml,Whisky,Glenfiddich,Otros importadores,1000,656100.0,604000.0,704600.0,480660.0,False,False,15,12
+KY-0084,Whisky Buchanan's Master 1000 ml,Whisky,Buchanan's,Diageo,1000,326700.0,286400.0,346400.0,250180.0,False,False,24,18
+KY-0085,Whisky Aberlour 12 años 1000 ml,Whisky,Aberlour,Pernod Ricard,1000,276600.0,246400.0,299600.0,222330.0,False,False,30,16
+KY-0086,Whisky Ballantine's Finest 1000 ml,Whisky,Ballantine's,Pernod Ricard,1000,136100.0,124300.0,137000.0,105400.0,False,False,0,3
+KY-0087,Whisky The Glenlivet 18 años 1000 ml,Whisky,The Glenlivet,Pernod Ricard,1000,641800.0,588000.0,673200.0,491050.0,False,False,11,6
+KY-0088,Whisky Chivas Regal Mizunara 1000 ml,Whisky,Chivas Regal,Pernod Ricard,1000,588700.0,502000.0,606100.0,468080.0,False,False,1,1
+KY-0089,Whisky Monkey Shoulder 1000 ml,Whisky,Monkey Shoulder,Otros importadores,1000,211400.0,201400.0,225700.0,152370.0,False,False,42,29
+KY-0090,Whisky Dewar's 15 años 1000 ml,Whisky,Dewar's,Bacardí,1000,420900.0,385500.0,450100.0,343610.0,False,False,14,10
+KY-0091,Whisky The Glenlivet Caribbean Reserve 1000 ml,Whisky,The Glenlivet,Pernod Ricard,1000,374700.0,333000.0,379200.0,299690.0,False,False,0,16
+KY-0092,Whisky Johnnie Walker Blue Label 1000 ml,Whisky,Johnnie Walker,Diageo,1000,823200.0,727800.0,831100.0,667670.0,False,False,6,5
+KY-0093,Whisky Glenfiddich 15 años 1000 ml,Whisky,Glenfiddich,Otros importadores,1000,278500.0,270100.0,298700.0,216390.0,False,False,17,11
+KY-0094,Whisky Dewar's White Label 1000 ml,Whisky,Dewar's,Bacardí,1000,113200.0,104500.0,116100.0,84820.0,False,False,0,6
+KY-0095,Whisky Jameson Black Barrel 1000 ml,Whisky,Jameson,Pernod Ricard,1000,118100.0,111400.0,127100.0,89300.0,False,False,15,12
+KY-0096,Whisky Glenfiddich 12 años 1000 ml,Whisky,Glenfiddich,Otros importadores,1000,225500.0,218800.0,239800.0,160580.0,False,False,31,24
+KY-0097,Whisky Buchanan's Two Souls 1000 ml,Whisky,Buchanan's,Diageo,1000,482800.0,419900.0,488800.0,365760.0,False,False,7,4
+KY-0098,Whisky Glenmorangie 10 años 1000 ml,Whisky,Glenmorangie,Otros importadores,1000,330000.0,309600.0,347100.0,253330.0,False,False,0,5
+KY-0099,Vino Norton Merlot,Vino,Norton,Global Wine & Spirits,750,45800.0,44900.0,49100.0,29670.0,False,False,18,10
+KY-0100,Vino Beronia Tempranillo,Vino,Beronia,Global Wine & Spirits,750,83400.0,73300.0,90000.0,60790.0,False,False,128,71
+KY-0101,Vino Protos Merlot,Vino,Protos,Marpico,750,135500.0,123400.0,144300.0,95570.0,False,False,11,6
+KY-0102,Vino Protos Tempranillo,Vino,Protos,Marpico,750,128500.0,120700.0,132100.0,92270.0,False,False,0,7
+KY-0103,Vino Ramón Bilbao Tempranillo,Vino,Ramón Bilbao,Global Wine & Spirits,750,110700.0,106300.0,113900.0,80200.0,False,False,51,42
+KY-0104,Vino Undurraga Sauvignon Blanc,Vino,Undurraga,Global Wine & Spirits,750,27700.0,27000.0,28800.0,20350.0,False,False,36,19
+KY-0105,Vino Norton Carménère,Vino,Norton,Global Wine & Spirits,750,48700.0,47700.0,52900.0,36060.0,False,False,0,11
+KY-0106,Vino Montes Sauvignon Blanc,Vino,Montes,Global Wine & Spirits,750,76000.0,70000.0,76200.0,51180.0,False,False,25,14
+KY-0107,Vino Catena Rosé,Vino,Catena,Marpico,750,116900.0,104100.0,124200.0,83210.0,False,False,14,7
+KY-0108,Vino Norton Malbec,Vino,Norton,Global Wine & Spirits,750,56600.0,51400.0,61200.0,38330.0,False,False,0,19
+KY-0109,Vino Alamos Tempranillo,Vino,Alamos,Marpico,750,54700.0,53600.0,57000.0,39830.0,False,False,11,6
+KY-0110,Vino Castillo de Molina Chardonnay,Vino,Castillo de Molina,Otros importadores,750,65000.0,63700.0,70800.0,43490.0,False,False,0,17
+KY-0111,Vino Santa Carolina Sauvignon Blanc,Vino,Santa Carolina,Global Wine & Spirits,750,36200.0,35100.0,39400.0,25560.0,False,False,20,11
+KY-0112,Vino Norton Sauvignon Blanc,Vino,Norton,Global Wine & Spirits,750,51900.0,49000.0,54500.0,38780.0,False,False,13,6
+KY-0113,Vino Marqués de Casa Concha Chardonnay,Vino,Marqués de Casa Concha,Otros importadores,750,91300.0,80500.0,99000.0,59650.0,False,False,18,10
+KY-0114,Vino Castillo de Molina Cabernet Sauvignon,Vino,Castillo de Molina,Otros importadores,750,55700.0,52700.0,59400.0,35410.0,False,False,9,4
+KY-0115,Vino Beronia Merlot,Vino,Beronia,Global Wine & Spirits,750,78400.0,75700.0,78600.0,52370.0,False,False,22,12
+KY-0116,Vino Marqués de Riscal Carménère,Vino,Marqués de Riscal,Marpico,750,94200.0,88500.0,99900.0,67080.0,False,False,1,1
+KY-0117,Vino Trapiche Carménère,Vino,Trapiche,Marpico,750,36700.0,33600.0,37200.0,27380.0,False,False,11,5
+KY-0118,Vino Emiliana Tempranillo,Vino,Emiliana,Marpico,750,68500.0,63200.0,69700.0,48220.0,False,False,0,20
+KY-0119,Vino Norton Chardonnay,Vino,Norton,Global Wine & Spirits,750,33800.0,32500.0,36500.0,24360.0,False,False,14,6
+KY-0120,Vino Ramón Bilbao Merlot,Vino,Ramón Bilbao,Global Wine & Spirits,750,93100.0,84400.0,98200.0,58700.0,False,False,9,4
+KY-0121,Vino Santa Carolina Merlot,Vino,Santa Carolina,Global Wine & Spirits,750,38900.0,36500.0,38900.0,27010.0,False,False,0,22
+KY-0122,Vino Rutini Cabernet Sauvignon,Vino,Rutini,Marpico,750,110000.0,102000.0,118200.0,76070.0,False,False,13,7
+KY-0123,Vino Castillo de Molina Carménère,Vino,Castillo de Molina,Otros importadores,750,53600.0,47900.0,53600.0,36060.0,False,False,7,4
+KY-0124,Vino Luigi Bosca Malbec,Vino,Luigi Bosca,Global Wine & Spirits,750,83400.0,77400.0,83500.0,56720.0,False,False,39,26
+KY-0125,Vino Santa Rita 120 Merlot,Vino,Santa Rita 120,Global Wine & Spirits,750,47600.0,42200.0,48200.0,30860.0,False,False,48,25
+KY-0126,Vino Santa Rita 120 Cabernet Sauvignon,Vino,Santa Rita 120,Global Wine & Spirits,750,37200.0,36300.0,38500.0,26950.0,False,False,25,21
+KY-0127,Vino Emiliana Merlot,Vino,Emiliana,Marpico,750,57100.0,55400.0,58300.0,39140.0,False,False,25,18
+KY-0128,Vino Marqués de Casa Concha Merlot,Vino,Marqués de Casa Concha,Otros importadores,750,98900.0,96900.0,103800.0,69040.0,False,False,6,4
+KY-0129,Vino Emiliana Chardonnay,Vino,Emiliana,Marpico,750,46800.0,43600.0,48800.0,33670.0,False,False,0,7
+KY-0130,Vino Luigi Bosca Rosé,Vino,Luigi Bosca,Global Wine & Spirits,750,66700.0,61500.0,69800.0,42040.0,False,False,12,6
+KY-0131,Vino Luigi Bosca Sauvignon Blanc,Vino,Luigi Bosca,Global Wine & Spirits,750,74600.0,69300.0,80500.0,57250.0,False,False,68,30
+KY-0132,Vino Catena Carménère,Vino,Catena,Marpico,750,91500.0,86500.0,95600.0,60810.0,False,False,1,1
+KY-0133,Vino Luigi Bosca Merlot,Vino,Luigi Bosca,Global Wine & Spirits,750,131900.0,123800.0,134300.0,89710.0,False,False,1,1
+KY-0134,Vino Campo Viejo Cabernet Sauvignon,Vino,Campo Viejo,Pernod Ricard,750,46800.0,42000.0,46900.0,35260.0,False,False,16,12
+KY-0135,Vino Santa Carolina Cabernet Sauvignon,Vino,Santa Carolina,Global Wine & Spirits,750,40400.0,36500.0,40900.0,29690.0,False,False,55,41
+KY-0136,Vino Beronia Cabernet Sauvignon,Vino,Beronia,Global Wine & Spirits,750,85400.0,81400.0,91400.0,56780.0,False,False,15,10
+KY-0137,Vino Montes Chardonnay,Vino,Montes,Global Wine & Spirits,750,79900.0,68200.0,80700.0,56620.0,False,False,16,12
+KY-0138,Vino Santa Rita 120 Malbec,Vino,Santa Rita 120,Global Wine & Spirits,750,33600.0,31400.0,36400.0,22620.0,False,False,15,13
+KY-0139,Vino Castillo de Molina Tempranillo,Vino,Castillo de Molina,Otros importadores,750,53400.0,48700.0,53900.0,38270.0,False,False,9,6
+KY-0140,Vino Ramón Bilbao Cabernet Sauvignon,Vino,Ramón Bilbao,Global Wine & Spirits,750,68900.0,67100.0,72300.0,44250.0,False,False,14,7
+KY-0141,Vino Beronia Rosé,Vino,Beronia,Global Wine & Spirits,750,60800.0,54800.0,63300.0,44000.0,False,False,0,22
+KY-0142,Vino Montes Cabernet Sauvignon,Vino,Montes,Global Wine & Spirits,750,118000.0,112100.0,128300.0,77490.0,False,False,26,12
+KY-0143,Vino Mouton Cadet Tempranillo,Vino,Mouton Cadet,Otros importadores,750,79800.0,78200.0,84400.0,56120.0,False,False,12,8
+KY-0144,Vino Marqués de Casa Concha Cabernet Sauvignon,Vino,Marqués de Casa Concha,Otros importadores,750,100400.0,93100.0,103500.0,65290.0,False,False,88,44
+KY-0145,Vino Catena Merlot,Vino,Catena,Marpico,750,75700.0,69900.0,76600.0,54230.0,False,False,19,10
+KY-0146,Vino Emiliana Malbec,Vino,Emiliana,Marpico,750,43000.0,39400.0,44700.0,31120.0,False,False,0,21
+KY-0147,Vino Mouton Cadet Cabernet Sauvignon,Vino,Mouton Cadet,Otros importadores,750,53600.0,47600.0,57700.0,35710.0,False,False,10,7
+KY-0148,Vino Alamos Sauvignon Blanc,Vino,Alamos,Marpico,750,65700.0,64400.0,69300.0,45710.0,False,False,0,18
+KY-0149,Vino Campo Viejo Merlot,Vino,Campo Viejo,Pernod Ricard,750,45900.0,39200.0,46100.0,33110.0,False,False,12,10
+KY-0150,Vino Marqués de Riscal Malbec,Vino,Marqués de Riscal,Marpico,750,82300.0,80700.0,89300.0,59400.0,False,False,0,22
+KY-0151,Vino Protos Sauvignon Blanc,Vino,Protos,Marpico,750,123300.0,115900.0,128200.0,84330.0,False,False,0,19
+KY-0152,Vino Casillero del Diablo Carménère,Vino,Casillero del Diablo,Otros importadores,750,35500.0,33100.0,37000.0,25540.0,False,False,0,8
+KY-0153,Vino Marqués de Casa Concha Rosé,Vino,Marqués de Casa Concha,Otros importadores,750,89000.0,80000.0,91300.0,62450.0,False,False,6,5
+KY-0154,Vino Santa Rita 120 Sauvignon Blanc,Vino,Santa Rita 120,Global Wine & Spirits,750,45700.0,43300.0,48200.0,32040.0,False,False,20,14
+KY-0155,Vino Marqués de Casa Concha Malbec,Vino,Marqués de Casa Concha,Otros importadores,750,71500.0,70100.0,77800.0,51160.0,False,False,16,9
+KY-0156,Vino Rutini Sauvignon Blanc,Vino,Rutini,Marpico,750,123200.0,112100.0,129400.0,85840.0,False,False,1,1
+KY-0157,Vino Mouton Cadet Malbec,Vino,Mouton Cadet,Otros importadores,750,65600.0,64200.0,70700.0,48740.0,False,False,13,9
+KY-0158,Vino Montes Merlot,Vino,Montes,Global Wine & Spirits,750,103100.0,97700.0,106000.0,66470.0,False,False,13,10
+KY-0159,Vino Undurraga Merlot,Vino,Undurraga,Global Wine & Spirits,750,42900.0,42000.0,44100.0,30810.0,False,False,0,3
+KY-0160,Vino Rutini Rosé,Vino,Rutini,Marpico,750,113000.0,104800.0,113800.0,78890.0,False,False,0,14
+KY-0161,Vino Campo Viejo Chardonnay,Vino,Campo Viejo,Pernod Ricard,750,60400.0,49800.0,63800.0,43730.0,False,False,1,1
+KY-0162,Vino Catena Chardonnay,Vino,Catena,Marpico,750,105800.0,103300.0,109300.0,73460.0,False,False,3,3
+KY-0163,Vino Santa Carolina Rosé,Vino,Santa Carolina,Global Wine & Spirits,750,38900.0,34500.0,42000.0,26890.0,False,False,0,12
+KY-0164,Vino Ramón Bilbao Sauvignon Blanc,Vino,Ramón Bilbao,Global Wine & Spirits,750,98200.0,96200.0,101800.0,69600.0,False,False,1,1
+KY-0165,Vino Rutini Malbec,Vino,Rutini,Marpico,750,116200.0,108300.0,119200.0,80340.0,False,False,30,16
+KY-0166,Vino Alamos Malbec,Vino,Alamos,Marpico,750,61000.0,59800.0,64400.0,42440.0,False,False,42,25
+KY-0167,Vino Rutini Carménère,Vino,Rutini,Marpico,750,85000.0,79500.0,92300.0,55560.0,False,False,0,3
+KY-0168,Vino Castillo de Molina Malbec,Vino,Castillo de Molina,Otros importadores,750,43000.0,38000.0,46300.0,28600.0,False,False,19,12
+KY-0169,Vino Trapiche Rosé,Vino,Trapiche,Marpico,750,49900.0,45900.0,54000.0,34580.0,False,False,40,29
+KY-0170,Vino Undurraga Chardonnay,Vino,Undurraga,Global Wine & Spirits,750,40900.0,37600.0,44200.0,26730.0,False,False,0,17
+KY-0171,Vino Emiliana Sauvignon Blanc,Vino,Emiliana,Marpico,750,52200.0,47900.0,52300.0,38280.0,False,False,0,13
+KY-0172,Vino Campo Viejo Tempranillo,Vino,Campo Viejo,Pernod Ricard,750,57800.0,52200.0,60600.0,43440.0,False,False,16,10
+KY-0173,Vino Mouton Cadet Chardonnay,Vino,Mouton Cadet,Otros importadores,750,76000.0,70100.0,80000.0,50490.0,False,False,43,21
+KY-0174,Vino Protos Carménère,Vino,Protos,Marpico,750,129700.0,127100.0,130700.0,94050.0,False,False,0,18
+KY-0175,Vino Marqués de Riscal Cabernet Sauvignon,Vino,Marqués de Riscal,Marpico,750,102500.0,100400.0,104800.0,76500.0,False,False,35,20
+KY-0176,Vino Alamos Merlot,Vino,Alamos,Marpico,750,55200.0,54100.0,58500.0,36100.0,False,False,29,21
+KY-0177,Vino Marqués de Riscal Chardonnay,Vino,Marqués de Riscal,Marpico,750,98300.0,92600.0,106100.0,65450.0,False,False,2,2
+KY-0178,Vino Norton Rosé,Vino,Norton,Global Wine & Spirits,750,40800.0,37300.0,41000.0,28380.0,False,False,0,22
+KY-0179,Vino Luigi Bosca Chardonnay,Vino,Luigi Bosca,Global Wine & Spirits,750,97100.0,93600.0,97900.0,71310.0,False,False,14,9
+KY-0180,Vino Montes Carménère,Vino,Montes,Global Wine & Spirits,750,75500.0,69000.0,80500.0,52660.0,False,False,0,3
+KY-0181,Vino Casillero del Diablo Cabernet Sauvignon,Vino,Casillero del Diablo,Otros importadores,750,42700.0,39100.0,46100.0,30680.0,False,False,14,8
+KY-0182,Vino Santa Rita 120 Rosé,Vino,Santa Rita 120,Global Wine & Spirits,750,33400.0,30200.0,35700.0,23330.0,False,False,17,13
+KY-0183,Vino Beronia Sauvignon Blanc,Vino,Beronia,Global Wine & Spirits,750,65900.0,64600.0,67800.0,44720.0,False,False,42,26
+KY-0184,Vino Marqués de Riscal Rosé,Vino,Marqués de Riscal,Marpico,750,103000.0,100900.0,104400.0,69410.0,False,False,12,6
+KY-0185,Vino Campo Viejo Rosé,Vino,Campo Viejo,Pernod Ricard,750,52800.0,43700.0,54300.0,36410.0,False,False,2,1
+KY-0186,Vino Mouton Cadet Rosé,Vino,Mouton Cadet,Otros importadores,750,60300.0,54900.0,60800.0,39970.0,False,False,98,74
+KY-0187,Vino Castillo de Molina Merlot,Vino,Castillo de Molina,Otros importadores,750,44300.0,40700.0,47700.0,31540.0,False,False,45,31
+KY-0188,Vino Protos Chardonnay,Vino,Protos,Marpico,750,143900.0,131100.0,152500.0,97810.0,False,False,16,11
+KY-0189,Vino Marqués de Riscal Sauvignon Blanc,Vino,Marqués de Riscal,Marpico,750,127000.0,120000.0,130700.0,89160.0,False,False,413,228
+KY-0190,Vino Undurraga Carménère,Vino,Undurraga,Global Wine & Spirits,750,52300.0,50900.0,52800.0,36270.0,False,False,29,23
+KY-0191,Vino Campo Viejo Carménère,Vino,Campo Viejo,Pernod Ricard,750,55200.0,46900.0,56600.0,37080.0,False,False,0,11
+KY-0192,Vino Catena Tempranillo,Vino,Catena,Marpico,750,100200.0,98200.0,105800.0,70260.0,False,False,0,13
+KY-0193,Vino Casillero del Diablo Tempranillo,Vino,Casillero del Diablo,Otros importadores,750,51600.0,46900.0,54200.0,36290.0,False,False,1,1
+KY-0194,Vino Santa Carolina Tempranillo,Vino,Santa Carolina,Global Wine & Spirits,750,48700.0,47500.0,50600.0,34310.0,False,False,12,5
+KY-0195,Vino Trapiche Chardonnay,Vino,Trapiche,Marpico,750,28800.0,28200.0,30600.0,20160.0,False,False,16,7
+KY-0196,Vino Alamos Chardonnay,Vino,Alamos,Marpico,750,48800.0,45500.0,49700.0,33930.0,False,False,0,5
+KY-0197,Vino Beronia Chardonnay,Vino,Beronia,Global Wine & Spirits,750,54700.0,49200.0,56900.0,35980.0,False,False,29,15
+KY-0198,Vino Rutini Chardonnay,Vino,Rutini,Marpico,750,112100.0,103600.0,116200.0,74070.0,False,False,80,35
+KY-0199,Vino Trapiche Malbec,Vino,Trapiche,Marpico,750,42900.0,42000.0,46500.0,29220.0,False,False,66,31
+KY-0200,Vino Ramón Bilbao Malbec,Vino,Ramón Bilbao,Global Wine & Spirits,750,86100.0,82200.0,90300.0,64720.0,False,False,6,5
+KY-0201,Vino Undurraga Cabernet Sauvignon,Vino,Undurraga,Global Wine & Spirits,750,47500.0,46100.0,51200.0,34420.0,False,False,0,13
+KY-0202,Vino Norton Tempranillo,Vino,Norton,Global Wine & Spirits,750,53300.0,50400.0,54900.0,37480.0,False,False,0,13
+KY-0203,Vino Casillero del Diablo Rosé,Vino,Casillero del Diablo,Otros importadores,750,48500.0,45600.0,50900.0,33490.0,False,False,0,3
+KY-0204,Vino Campo Viejo Malbec,Vino,Campo Viejo,Pernod Ricard,750,46300.0,40600.0,49900.0,33220.0,False,False,1,1
+KY-0205,Vino Catena Cabernet Sauvignon,Vino,Catena,Marpico,750,72300.0,66600.0,76100.0,50190.0,False,False,0,19
+KY-0206,Vino Emiliana Rosé,Vino,Emiliana,Marpico,750,55200.0,52600.0,59200.0,39280.0,False,False,0,3
+KY-0207,Vino Marqués de Riscal Merlot,Vino,Marqués de Riscal,Marpico,750,79700.0,77700.0,83200.0,55470.0,False,False,59,24
+KY-0208,Vino Montes Rosé,Vino,Montes,Global Wine & Spirits,750,77400.0,66700.0,82400.0,53750.0,False,False,20,17
+KY-0209,Vino Alamos Cabernet Sauvignon,Vino,Alamos,Marpico,750,41900.0,39900.0,42000.0,29110.0,False,False,0,16
+KY-0210,Vino Mouton Cadet Merlot,Vino,Mouton Cadet,Otros importadores,750,69100.0,64300.0,72600.0,44070.0,False,False,17,10
+KY-0211,Vino Casillero del Diablo Sauvignon Blanc,Vino,Casillero del Diablo,Otros importadores,750,41100.0,40000.0,42000.0,28440.0,False,False,14,10
+KY-0212,Vino Rutini Merlot,Vino,Rutini,Marpico,750,130800.0,128200.0,137000.0,97720.0,False,False,1,1
+KY-0213,Vino Santa Carolina Chardonnay,Vino,Santa Carolina,Global Wine & Spirits,750,38000.0,35400.0,40700.0,26490.0,False,False,13,6
+KY-0214,Vino Santa Rita 120 Tempranillo,Vino,Santa Rita 120,Global Wine & Spirits,750,34400.0,31500.0,36200.0,23470.0,False,False,286,171
+KY-0215,Vino Marqués de Casa Concha Carménère,Vino,Marqués de Casa Concha,Otros importadores,750,84000.0,78200.0,88100.0,56690.0,False,False,10,6
+KY-0216,Vino Santa Carolina Carménère,Vino,Santa Carolina,Global Wine & Spirits,750,49200.0,45400.0,53300.0,35750.0,False,False,0,11
+KY-0217,Vino Castillo de Molina Sauvignon Blanc,Vino,Castillo de Molina,Otros importadores,750,38000.0,34500.0,40700.0,25030.0,False,False,118,58
+KY-0218,Vino Alamos Rosé,Vino,Alamos,Marpico,750,64500.0,61100.0,70100.0,42490.0,False,False,121,93
+KY-0219,Vino Luigi Bosca Cabernet Sauvignon,Vino,Luigi Bosca,Global Wine & Spirits,750,110900.0,107800.0,113900.0,73020.0,False,False,3,3
+KY-0220,Vino Undurraga Rosé,Vino,Undurraga,Global Wine & Spirits,750,43100.0,42200.0,46800.0,29190.0,False,False,10,7
+KY-0221,Vino Trapiche Merlot,Vino,Trapiche,Marpico,750,33300.0,31800.0,35800.0,24010.0,False,False,42,34
+KY-0222,Vino Alamos Carménère,Vino,Alamos,Marpico,750,60700.0,58200.0,62700.0,41880.0,False,False,15,6
+KY-0223,Vino Marqués de Casa Concha Sauvignon Blanc,Vino,Marqués de Casa Concha,Otros importadores,750,83900.0,79000.0,86000.0,58650.0,False,False,0,14
+KY-0224,Vino Catena Sauvignon Blanc,Vino,Catena,Marpico,750,90700.0,88900.0,97300.0,64180.0,False,False,16,14
+KY-0225,Vino Undurraga Tempranillo,Vino,Undurraga,Global Wine & Spirits,750,34200.0,31000.0,34900.0,22640.0,False,False,181,149
+KY-0226,Vino Beronia Malbec,Vino,Beronia,Global Wine & Spirits,750,63100.0,61800.0,67900.0,45120.0,False,False,0,12
+KY-0227,Vino Casillero del Diablo Merlot,Vino,Casillero del Diablo,Otros importadores,750,33700.0,32500.0,35500.0,22780.0,False,False,116,79
+KY-0228,Vino Campo Viejo Sauvignon Blanc,Vino,Campo Viejo,Pernod Ricard,750,40100.0,37000.0,40600.0,26850.0,False,False,60,39
+KY-0229,Vino Undurraga Malbec,Vino,Undurraga,Global Wine & Spirits,750,35900.0,31600.0,38100.0,25910.0,False,False,12,9
+KY-0230,Vino Casillero del Diablo Malbec,Vino,Casillero del Diablo,Otros importadores,750,39300.0,36800.0,39600.0,27630.0,False,False,83,50
+KY-0231,Vino Montes Tempranillo,Vino,Montes,Global Wine & Spirits,750,90400.0,84000.0,95800.0,64400.0,False,False,7,6
+KY-0232,Vino Beronia Carménère,Vino,Beronia,Global Wine & Spirits,750,64200.0,62700.0,65800.0,44080.0,False,False,124,51
+KY-0233,Vino Trapiche Sauvignon Blanc,Vino,Trapiche,Marpico,750,32000.0,28900.0,32400.0,22150.0,False,False,0,16
+KY-0234,Vino Protos Rosé,Vino,Protos,Marpico,750,126800.0,113100.0,137000.0,89270.0,False,False,0,6
+KY-0235,Vino Montes Malbec,Vino,Montes,Global Wine & Spirits,750,77000.0,70700.0,81700.0,50030.0,False,False,17,14
+KY-0236,Vino Marqués de Casa Concha Tempranillo,Vino,Marqués de Casa Concha,Otros importadores,750,87700.0,77700.0,91100.0,62010.0,False,False,1,1
+KY-0237,Vino Santa Carolina Malbec,Vino,Santa Carolina,Global Wine & Spirits,750,50200.0,43700.0,52500.0,33670.0,False,False,10,8
+KY-0238,Vino Santa Rita 120 Chardonnay,Vino,Santa Rita 120,Global Wine & Spirits,750,29600.0,29000.0,30600.0,19040.0,False,False,11,8
+KY-0239,Ron Dictador 20 años,Ron,Dictador,Otros importadores,700,212000.0,193400.0,223300.0,149430.0,False,False,0,16
+KY-0240,Ron Bacardí Añejo 4,Ron,Bacardí,Bacardí,700,48900.0,47900.0,49200.0,37370.0,False,False,83,36
+KY-0241,Ron Parce 8 años,Ron,Parce,Otros importadores,700,104100.0,94400.0,110000.0,76580.0,False,False,2,2
+KY-0242,Ron Diplomático Mantuano,Ron,Diplomático,Otros importadores,700,103600.0,92000.0,103600.0,80670.0,False,False,33,16
+KY-0243,Ron Kraken,Ron,Kraken,Otros importadores,700,71900.0,70300.0,76400.0,53440.0,False,False,0,8
+KY-0244,Ron Dictador XO,Ron,Dictador,Otros importadores,700,382400.0,374800.0,391500.0,274080.0,False,False,0,10
+KY-0245,Ron Defensor 18 años,Ron,Defensor,Distribución KYVA,700,235800.0,222400.0,246900.0,153380.0,True,False,49,27
+KY-0246,Ron Bacardí Superior,Ron,Bacardí,Bacardí,700,51100.0,50000.0,55000.0,39660.0,False,False,28,19
+KY-0247,Ron Parce 12 años,Ron,Parce,Otros importadores,700,96100.0,87900.0,99200.0,76790.0,False,False,11,5
+KY-0248,Ron Bacardí Reserva Ocho,Ron,Bacardí,Bacardí,700,81500.0,73800.0,82400.0,65300.0,False,False,0,17
+KY-0249,Ron Dictador 12 años,Ron,Dictador,Otros importadores,700,88000.0,82200.0,89000.0,67240.0,False,False,0,23
+KY-0250,Ron Captain Morgan Spiced,Ron,Captain Morgan,Diageo,700,39000.0,33600.0,39100.0,29230.0,False,False,1,1
+KY-0251,Ron Zacapa XO,Ron,Zacapa,Diageo,700,398100.0,377600.0,430300.0,311590.0,False,False,16,7
+KY-0252,Ron Ron Viejo de Caldas Esencial,Ron,Ron Viejo de Caldas,Otros importadores,700,33200.0,30000.0,35700.0,22920.0,False,False,12,6
+KY-0253,Ron La Hechicera,Ron,La Hechicera,Otros importadores,700,86800.0,82100.0,90900.0,64870.0,False,False,13,9
+KY-0254,Ron Havana Club Añejo Especial,Ron,Havana Club,Pernod Ricard,700,69700.0,68300.0,76000.0,54820.0,False,False,0,23
+KY-0255,Ron Zacapa 23,Ron,Zacapa,Diageo,700,196200.0,180700.0,199600.0,145670.0,False,False,51,25
+KY-0256,Ron Havana Club Selección de Maestros,Ron,Havana Club,Pernod Ricard,700,112500.0,98400.0,113800.0,84030.0,False,False,30,15
+KY-0257,Ron Zacapa Edición Negra,Ron,Zacapa,Diageo,700,164700.0,154500.0,175800.0,117370.0,False,False,16,9
+KY-0258,Ron Ron Viejo de Caldas Gran Reserva,Ron,Ron Viejo de Caldas,Otros importadores,700,79000.0,68900.0,82800.0,57050.0,False,False,10,5
+KY-0259,Ron Diplomático Reserva Exclusiva,Ron,Diplomático,Otros importadores,700,94700.0,92800.0,103200.0,73510.0,False,False,10,5
+KY-0260,Ron Bacardí 8 años,Ron,Bacardí,Bacardí,700,38700.0,37900.0,41000.0,28870.0,False,False,8,5
+KY-0261,Ron Havana Club 7 años,Ron,Havana Club,Pernod Ricard,700,66200.0,58700.0,70100.0,48200.0,False,False,0,15
+KY-0262,Ron Ron Viejo de Caldas Tradicional,Ron,Ron Viejo de Caldas,Otros importadores,700,37800.0,36500.0,40500.0,27600.0,False,False,46,30
+KY-0263,Ron Parce 8 años 1000 ml,Ron,Parce,Otros importadores,1000,130000.0,123000.0,132200.0,99210.0,False,False,32,25
+KY-0264,Ron Dictador XO 1000 ml,Ron,Dictador,Otros importadores,1000,366800.0,335800.0,376800.0,282340.0,False,False,24,20
+KY-0265,Ron Parce 12 años 1000 ml,Ron,Parce,Otros importadores,1000,119300.0,110800.0,127300.0,88280.0,False,False,17,13
+KY-0266,Ron Diplomático Reserva Exclusiva 1000 ml,Ron,Diplomático,Otros importadores,1000,141800.0,139000.0,149900.0,108180.0,False,False,26,12
+KY-0267,Ron Defensor 18 años 1000 ml,Ron,Defensor,Distribución KYVA,1000,265300.0,231500.0,269900.0,169580.0,True,False,2,2
+KY-0268,Ron Havana Club 7 años 1000 ml,Ron,Havana Club,Pernod Ricard,1000,78500.0,70200.0,81400.0,56210.0,False,False,1,1
+KY-0269,Ron Dictador 12 años 1000 ml,Ron,Dictador,Otros importadores,1000,122900.0,120400.0,124500.0,89040.0,False,False,0,16
+KY-0270,Ginebra Tanqueray London Dry,Ginebra,Tanqueray,Diageo,700,143800.0,127700.0,156500.0,103860.0,False,False,15,10
+KY-0271,Ginebra Roku,Ginebra,Roku,Otros importadores,700,129700.0,119300.0,134000.0,94610.0,False,False,17,9
+KY-0272,Ginebra Bombay Sapphire,Ginebra,Bombay Sapphire,Bacardí,700,102400.0,93300.0,106400.0,72140.0,False,False,136,56
+KY-0273,Ginebra Beefeater Pink,Ginebra,Beefeater,Pernod Ricard,700,170400.0,150600.0,182800.0,125150.0,False,False,1,1
+KY-0274,Ginebra Plymouth,Ginebra,Plymouth,Pernod Ricard,700,132100.0,116100.0,141600.0,100850.0,False,False,3,2
+KY-0275,Ginebra Plymouth Navy Strength,Ginebra,Plymouth,Pernod Ricard,700,105100.0,95300.0,113600.0,78960.0,False,False,18,11
+KY-0276,Ginebra Tanqueray Ten,Ginebra,Tanqueray,Diageo,700,122500.0,107600.0,128100.0,90840.0,False,False,24,14
+KY-0277,Ginebra Malfy Limone,Ginebra,Malfy,Pernod Ricard,700,107800.0,94600.0,115500.0,78280.0,False,False,15,8
+KY-0278,Ginebra Gin Mare,Ginebra,Gin Mare,Otros importadores,700,159000.0,151000.0,172900.0,121330.0,False,False,15,9
+KY-0279,Ginebra Beefeater 24,Ginebra,Beefeater,Pernod Ricard,700,143400.0,137200.0,154500.0,107600.0,False,False,2,1
+KY-0280,Ginebra Hendrick's,Ginebra,Hendrick's,Otros importadores,700,138300.0,133500.0,143300.0,103530.0,False,False,0,4
+KY-0281,Ginebra Malfy Rosa,Ginebra,Malfy,Pernod Ricard,700,137600.0,130300.0,142100.0,104890.0,False,False,0,20
+KY-0282,Ginebra Monkey 47,Ginebra,Monkey 47,Pernod Ricard,700,211500.0,177000.0,227600.0,151930.0,False,False,23,13
+KY-0283,Ginebra Malfy Rosa 1000 ml,Ginebra,Malfy,Pernod Ricard,1000,170400.0,148000.0,179700.0,126090.0,False,False,208,93
+KY-0284,Ginebra Plymouth Navy Strength 1000 ml,Ginebra,Plymouth,Pernod Ricard,1000,197100.0,189300.0,212700.0,141890.0,False,False,14,11
+KY-0285,Patrón Añejo,Tequila y mezcal,Patrón,Bacardí,700,199400.0,192600.0,208600.0,157950.0,False,False,0,9
+KY-0286,Don Julio Reposado,Tequila y mezcal,Don Julio,Diageo,700,163700.0,145400.0,168400.0,116170.0,False,False,73,33
+KY-0287,Patrón Reposado,Tequila y mezcal,Patrón,Bacardí,700,203300.0,180400.0,205100.0,154480.0,False,False,43,30
+KY-0288,Don Julio Blanco,Tequila y mezcal,Don Julio,Diageo,700,200200.0,185200.0,217600.0,149040.0,False,False,15,11
+KY-0289,Casamigos Reposado,Tequila y mezcal,Casamigos,Diageo,700,194600.0,176200.0,199100.0,147110.0,False,False,116,63
+KY-0290,400 Conejos Mezcal,Tequila y mezcal,400 Conejos,Otros importadores,700,87800.0,81100.0,91800.0,63930.0,False,False,0,4
+KY-0291,Don Julio 1942,Tequila y mezcal,Don Julio,Diageo,700,538800.0,469000.0,546400.0,393190.0,False,False,6,4
+KY-0292,Casamigos Blanco,Tequila y mezcal,Casamigos,Diageo,700,254400.0,217700.0,272900.0,188190.0,False,False,0,5
+KY-0293,Patrón Silver,Tequila y mezcal,Patrón,Bacardí,700,273600.0,267500.0,291500.0,199510.0,False,False,0,10
+KY-0294,1800 Cristalino,Tequila y mezcal,1800,Otros importadores,700,140700.0,137900.0,144700.0,99610.0,False,False,26,18
+KY-0295,José Cuervo Especial,Tequila y mezcal,José Cuervo,Otros importadores,700,77700.0,76100.0,82000.0,57090.0,False,False,23,19
+KY-0296,Montelobos Mezcal Espadín,Tequila y mezcal,Montelobos,Otros importadores,700,124800.0,116300.0,128800.0,93340.0,False,False,8,7
+KY-0297,José Cuervo Tradicional,Tequila y mezcal,José Cuervo,Otros importadores,700,64100.0,59000.0,64300.0,51350.0,False,False,15,10
+KY-0298,Avión Reposado,Tequila y mezcal,Avión,Pernod Ricard,700,191500.0,170700.0,194800.0,144050.0,False,False,34,26
+KY-0299,1800 Añejo,Tequila y mezcal,1800,Otros importadores,700,134700.0,120700.0,146600.0,105680.0,False,False,1,1
+KY-0300,Herradura Reposado,Tequila y mezcal,Herradura,Otros importadores,700,112100.0,103500.0,115600.0,88290.0,False,False,12,9
+KY-0301,José Cuervo Reserva de la Familia,Tequila y mezcal,José Cuervo,Otros importadores,700,454600.0,430200.0,491300.0,343700.0,False,False,11,8
+KY-0302,Avión Silver,Tequila y mezcal,Avión,Pernod Ricard,700,175300.0,161000.0,179000.0,129650.0,False,False,15,13
+KY-0303,Avión Cristalino,Tequila y mezcal,Avión,Pernod Ricard,700,158400.0,144500.0,169400.0,127240.0,False,False,0,7
+KY-0304,Casa Dragones Blanco,Tequila y mezcal,Casa Dragones,Otros importadores,700,416100.0,356900.0,420600.0,316890.0,False,False,0,14
+KY-0305,Don Julio 70,Tequila y mezcal,Don Julio,Diageo,700,151300.0,129200.0,158000.0,116670.0,False,False,1205,860
+KY-0306,Vodka Cîroc,Vodka,Cîroc,Diageo,700,153500.0,142000.0,161400.0,115340.0,False,False,10,5
+KY-0307,Vodka Smirnoff Green Apple,Vodka,Smirnoff,Diageo,700,63000.0,55600.0,65400.0,46240.0,False,False,0,18
+KY-0308,Vodka Absolut Citron,Vodka,Absolut,Pernod Ricard,700,90300.0,79500.0,91400.0,68680.0,False,False,0,6
+KY-0309,Vodka Tito's,Vodka,Tito's,Otros importadores,700,104500.0,91700.0,105300.0,81640.0,False,False,13,10
+KY-0310,Vodka Stolichnaya,Vodka,Stolichnaya,Otros importadores,700,55300.0,48900.0,59200.0,40480.0,False,False,18,12
+KY-0311,Vodka Ketel One,Vodka,Ketel One,Diageo,700,75900.0,70300.0,81600.0,56380.0,False,False,22,13
+KY-0312,Vodka Smirnoff,Vodka,Smirnoff,Diageo,700,46100.0,42700.0,49400.0,35250.0,False,False,48,39
+KY-0313,Vodka Grey Goose La Poire,Vodka,Grey Goose,Bacardí,700,121300.0,118800.0,131700.0,92740.0,False,False,24,11
+KY-0314,Vodka Absolut Elyx,Vodka,Absolut,Pernod Ricard,700,72400.0,69000.0,78400.0,56590.0,False,False,21,15
+KY-0315,Vodka Belvedere,Vodka,Belvedere,Otros importadores,700,135000.0,127300.0,141500.0,99030.0,False,False,36,16
+KY-0316,Vodka Cîroc Red Berry,Vodka,Cîroc,Diageo,700,133700.0,121600.0,139400.0,103310.0,False,False,25,13
+KY-0317,Vodka Absolut Raspberri,Vodka,Absolut,Pernod Ricard,700,67900.0,62100.0,73500.0,50620.0,False,False,0,17
+KY-0318,Vodka Grey Goose,Vodka,Grey Goose,Bacardí,700,154000.0,144200.0,154900.0,113280.0,False,False,32,19
+KY-0319,Vodka Absolut,Vodka,Absolut,Pernod Ricard,700,88800.0,83100.0,95600.0,68620.0,False,False,143,69
+KY-0320,Vodka Absolut 1000 ml,Vodka,Absolut,Pernod Ricard,1000,80700.0,71100.0,85500.0,61170.0,False,False,1,1
+KY-0321,Vodka Absolut Elyx 1000 ml,Vodka,Absolut,Pernod Ricard,1000,102600.0,92600.0,104700.0,81410.0,False,False,8,6
+KY-0322,Vodka Ketel One 1000 ml,Vodka,Ketel One,Diageo,1000,104800.0,92300.0,111700.0,78590.0,False,False,3391,1719
+KY-0323,Vodka Smirnoff 1000 ml,Vodka,Smirnoff,Diageo,1000,60800.0,52000.0,61000.0,45980.0,False,False,40,19
+KY-0324,Aguardiente Antioqueño Real 700 ml 375 ml,Aguardiente,Antioqueño,Otros importadores,375,21900.0,20100.0,22100.0,18790.0,False,False,0,3
+KY-0325,Aguardiente Amarillo de Manzanares 375 ml,Aguardiente,Amarillo de Manzanares,Otros importadores,375,28700.0,26000.0,30400.0,24330.0,False,False,0,16
+KY-0326,Aguardiente Antioqueño Verde 375 ml,Aguardiente,Antioqueño,Otros importadores,375,25400.0,23800.0,26000.0,20120.0,False,False,114,66
+KY-0327,Aguardiente Blanco del Valle 375 ml,Aguardiente,Blanco del Valle,Otros importadores,375,18100.0,17000.0,18400.0,15210.0,False,False,24,14
+KY-0328,Aguardiente Antioqueño Sin Azúcar 375 ml,Aguardiente,Antioqueño,Otros importadores,375,17900.0,17500.0,19400.0,14120.0,False,False,22,19
+KY-0329,Aguardiente Mil Demonios 50 ml 375 ml,Aguardiente,Mil Demonios,Distribución KYVA,375,39000.0,37000.0,42500.0,25960.0,True,False,0,0
+KY-0330,Aguardiente Néctar Verde 375 ml,Aguardiente,Néctar,Otros importadores,375,21100.0,20500.0,22600.0,16600.0,False,False,16,11
+KY-0331,Aguardiente Néctar Club 375 ml,Aguardiente,Néctar,Otros importadores,375,16700.0,16000.0,17900.0,13670.0,False,False,1,1
+KY-0332,Aguardiente Antioqueño Verde,Aguardiente,Antioqueño,Otros importadores,750,38400.0,34200.0,41800.0,34110.0,False,False,17,7
+KY-0333,Codorníu Clásico,Champaña y espumosos,Codorníu,Otros importadores,750,73600.0,64300.0,77000.0,58010.0,False,False,1,1
+KY-0334,Martini Asti,Champaña y espumosos,Martini,Bacardí,750,57600.0,52700.0,59500.0,44250.0,False,False,0,4
+KY-0335,Chandon Brut,Champaña y espumosos,Chandon,Otros importadores,750,130200.0,121800.0,136800.0,90120.0,False,False,30,25
+KY-0336,Perrier-Jouët Grand Brut,Champaña y espumosos,Perrier-Jouët,Pernod Ricard,750,332000.0,312500.0,343900.0,241150.0,False,False,15,12
+KY-0337,Dom Pérignon Vintage,Champaña y espumosos,Dom Pérignon,Otros importadores,750,1579900.0,1468400.0,1666000.0,1097930.0,False,False,16,13
+KY-0338,Martini Prosecco,Champaña y espumosos,Martini,Bacardí,750,53800.0,51300.0,56700.0,41710.0,False,False,0,21
+KY-0339,Moët & Chandon Rosé Impérial,Champaña y espumosos,Moët & Chandon,Otros importadores,750,201900.0,189000.0,215800.0,153770.0,False,False,0,9
+KY-0340,Mumm Cordon Rouge,Champaña y espumosos,Mumm,Pernod Ricard,750,173100.0,161800.0,185500.0,136200.0,False,False,14,6
+KY-0341,Chandon Garden Spritz,Champaña y espumosos,Chandon,Otros importadores,750,134800.0,130000.0,141900.0,99070.0,False,False,0,17
+KY-0342,Veuve Clicquot Rosé,Champaña y espumosos,Veuve Clicquot,Otros importadores,750,302700.0,296600.0,314300.0,218780.0,False,False,0,11
+KY-0343,Freixenet Cordon Negro,Champaña y espumosos,Freixenet,Otros importadores,750,61000.0,53400.0,62900.0,45300.0,False,False,6,4
+KY-0344,Perrier-Jouët Belle Époque,Champaña y espumosos,Perrier-Jouët,Pernod Ricard,750,785400.0,723900.0,822300.0,571500.0,False,False,0,23
+KY-0345,Codorníu Rosé,Champaña y espumosos,Codorníu,Otros importadores,750,75300.0,72500.0,77700.0,58750.0,False,False,38,22
+KY-0346,Mumm Rosé,Champaña y espumosos,Mumm,Pernod Ricard,750,183300.0,167700.0,186900.0,134430.0,False,False,27,12
+KY-0347,Veuve Clicquot Brut,Champaña y espumosos,Veuve Clicquot,Otros importadores,750,263600.0,239600.0,272800.0,199210.0,False,False,74,49
+KY-0348,Moët & Chandon Impérial,Champaña y espumosos,Moët & Chandon,Otros importadores,750,280500.0,267400.0,286600.0,217510.0,False,False,15,12
+KY-0349,Freixenet Prosecco,Champaña y espumosos,Freixenet,Otros importadores,750,82500.0,75900.0,86900.0,62660.0,False,False,237,100
+KY-0350,Moët & Chandon Nectar Impérial,Champaña y espumosos,Moët & Chandon,Otros importadores,750,296800.0,276300.0,318300.0,218350.0,False,False,0,21
+KY-0351,Moët & Chandon Rosé Impérial 375 ml,Champaña y espumosos,Moët & Chandon,Otros importadores,375,126300.0,114000.0,128600.0,97850.0,False,False,17,8
+KY-0352,Perrier-Jouët Belle Époque 375 ml,Champaña y espumosos,Perrier-Jouët,Pernod Ricard,375,418800.0,361500.0,450900.0,316350.0,False,False,0,12
+KY-0353,Martini Asti 375 ml,Champaña y espumosos,Martini,Bacardí,375,39400.0,34600.0,42500.0,28850.0,False,False,479,233
+KY-0354,Freixenet Cordon Negro 375 ml,Champaña y espumosos,Freixenet,Otros importadores,375,37700.0,35400.0,38500.0,29190.0,False,False,2,1
+KY-0355,Demonio de los Andes Quebranta,"Cognac, brandy y pisco",Demonio de los Andes,Otros importadores,700,89900.0,88100.0,92300.0,64240.0,False,False,100,62
+KY-0356,Martell VSOP,"Cognac, brandy y pisco",Martell,Pernod Ricard,700,190400.0,175600.0,203400.0,144620.0,False,False,8,6
+KY-0357,Martell VS,"Cognac, brandy y pisco",Martell,Pernod Ricard,700,174400.0,157800.0,189400.0,136850.0,False,False,0,18
+KY-0358,Martell Blue Swift,"Cognac, brandy y pisco",Martell,Pernod Ricard,700,205800.0,183500.0,218800.0,163950.0,False,False,0,13
+KY-0359,Demonio de los Andes Acholado,"Cognac, brandy y pisco",Demonio de los Andes,Otros importadores,700,83900.0,78600.0,84400.0,66190.0,False,False,21,14
+KY-0360,Torres 10,"Cognac, brandy y pisco",Torres,Otros importadores,700,159600.0,155300.0,169800.0,111300.0,False,False,343,278
+KY-0361,Rémy Martin VSOP,"Cognac, brandy y pisco",Rémy Martin,Otros importadores,700,297600.0,290300.0,320500.0,225240.0,False,False,0,15
+KY-0362,Hennessy VSOP,"Cognac, brandy y pisco",Hennessy,Otros importadores,700,221800.0,217400.0,225400.0,155310.0,False,False,12,9
+KY-0363,Rémy Martin 1738,"Cognac, brandy y pisco",Rémy Martin,Otros importadores,700,207800.0,203600.0,209600.0,159430.0,False,False,12,10
+KY-0364,Torres 20,"Cognac, brandy y pisco",Torres,Otros importadores,700,133800.0,127300.0,134300.0,98220.0,False,False,55,43
+KY-0365,Hennessy VS,"Cognac, brandy y pisco",Hennessy,Otros importadores,700,199000.0,191400.0,216000.0,151820.0,False,False,58,40
+KY-0366,Hennessy XO,"Cognac, brandy y pisco",Hennessy,Otros importadores,700,746900.0,702800.0,758700.0,558410.0,False,False,12,10
+KY-0367,Carlos I,"Cognac, brandy y pisco",Carlos I,Otros importadores,700,138200.0,122400.0,143200.0,105920.0,False,False,0,13
+KY-0368,Licor 43,Licores y aperitivos,Licor 43,Otros importadores,700,70500.0,67100.0,73700.0,49380.0,False,False,15,12
+KY-0369,Martini Rosso,Licores y aperitivos,Martini,Bacardí,700,17700.0,17300.0,19100.0,12830.0,False,False,47,20
+KY-0370,Limoncello Villa Massa,Licores y aperitivos,Limoncello Villa Massa,Otros importadores,700,70400.0,64600.0,75800.0,49740.0,False,False,129,59
+KY-0371,Kahlúa,Licores y aperitivos,Kahlúa,Pernod Ricard,700,58100.0,50300.0,61000.0,42650.0,False,False,21,11
+KY-0372,Grand Marnier,Licores y aperitivos,Grand Marnier,Otros importadores,700,104900.0,97100.0,109800.0,76470.0,False,False,12,7
+KY-0373,Martini Bianco,Licores y aperitivos,Martini,Bacardí,700,16800.0,15800.0,17700.0,11840.0,False,False,62,32
+KY-0374,Sheridan's,Licores y aperitivos,Sheridan's,Otros importadores,700,58300.0,57100.0,61700.0,39460.0,False,False,8,4
+KY-0375,Lillet Rosé,Licores y aperitivos,Lillet,Pernod Ricard,700,62500.0,55400.0,67000.0,44170.0,False,False,0,17
+KY-0376,Ricard Pastis,Licores y aperitivos,Ricard,Pernod Ricard,700,42700.0,37600.0,43600.0,31060.0,False,False,0,21
+KY-0377,Lillet Blanc,Licores y aperitivos,Lillet,Pernod Ricard,700,80700.0,70900.0,85900.0,58490.0,False,False,0,9
+KY-0378,Cointreau,Licores y aperitivos,Cointreau,Otros importadores,700,96100.0,94200.0,99900.0,74580.0,False,False,27,13
+KY-0379,Baileys,Licores y aperitivos,Baileys,Diageo,700,63500.0,55000.0,63500.0,47770.0,False,False,298,155
+KY-0380,Aperol,Licores y aperitivos,Aperol,Otros importadores,700,50700.0,48300.0,54600.0,38690.0,False,False,26,17
+KY-0381,Martini Extra Dry,Licores y aperitivos,Martini,Bacardí,700,19400.0,17300.0,20700.0,13710.0,False,False,0,19
+KY-0382,Chambord,Licores y aperitivos,Chambord,Otros importadores,700,88900.0,82000.0,90600.0,62820.0,False,False,0,20
+KY-0383,Licor 43 Baristo,Licores y aperitivos,Licor 43,Otros importadores,700,69700.0,62700.0,72000.0,50880.0,False,False,0,13
+KY-0384,Pernod Absinthe,Licores y aperitivos,Pernod,Pernod Ricard,700,92500.0,79900.0,95800.0,70770.0,False,False,2,2
+KY-0385,St-Germain,Licores y aperitivos,St-Germain,Bacardí,700,92700.0,87600.0,99400.0,67250.0,False,False,24,18
+KY-0386,Jägermeister,Licores y aperitivos,Jägermeister,Otros importadores,700,79800.0,77500.0,83900.0,56180.0,False,False,35,25
+KY-0387,Baileys Salted Caramel,Licores y aperitivos,Baileys,Diageo,700,67200.0,58200.0,68000.0,49530.0,False,False,72,34
+KY-0388,Frangelico,Licores y aperitivos,Frangelico,Otros importadores,700,61200.0,54800.0,62500.0,42520.0,False,False,0,18
+KY-0389,Campari,Licores y aperitivos,Campari,Otros importadores,700,59200.0,57200.0,59500.0,41340.0,False,False,13,7
+KY-0390,Amaretto Disaronno,Licores y aperitivos,Amaretto Disaronno,Otros importadores,700,78900.0,69200.0,82900.0,59140.0,False,False,107,51
+KY-0391,Fernet-Branca,Licores y aperitivos,Fernet-Branca,Otros importadores,700,72200.0,69000.0,73700.0,52900.0,False,False,17,10
+KY-0392,Malibu,Licores y aperitivos,Malibu,Pernod Ricard,700,60900.0,55800.0,63200.0,45110.0,False,False,23,16
+KY-0393,Fernet-Branca 1000 ml,Licores y aperitivos,Fernet-Branca,Otros importadores,1000,102100.0,96800.0,104200.0,75620.0,False,False,8,7
+KY-0394,Ricard Pastis 1000 ml,Licores y aperitivos,Ricard,Pernod Ricard,1000,62400.0,54100.0,66700.0,48290.0,False,False,21,10
+KY-0395,Campari 1000 ml,Licores y aperitivos,Campari,Otros importadores,1000,72200.0,64300.0,75300.0,52520.0,False,False,1,1
+KY-0396,Martini Bianco 1000 ml,Licores y aperitivos,Martini,Bacardí,1000,28100.0,26100.0,28700.0,20770.0,False,False,0,3
+KY-0397,Aperol 1000 ml,Licores y aperitivos,Aperol,Otros importadores,1000,61700.0,55200.0,63800.0,47950.0,False,False,9,7
+KY-0398,Limoncello Villa Massa 1000 ml,Licores y aperitivos,Limoncello Villa Massa,Otros importadores,1000,67000.0,65500.0,68500.0,48040.0,False,False,10,8
+KY-0399,Licor 43 Baristo 1000 ml,Licores y aperitivos,Licor 43,Otros importadores,1000,107400.0,105300.0,116600.0,87410.0,False,False,0,20
+KY-0400,Martini Rosso 1000 ml,Licores y aperitivos,Martini,Bacardí,1000,27200.0,26100.0,27600.0,18180.0,False,False,27,15
+KY-0401,Kahlúa 1000 ml,Licores y aperitivos,Kahlúa,Pernod Ricard,1000,78200.0,69700.0,83300.0,58510.0,False,False,9,5
+KY-0402,Chambord 1000 ml,Licores y aperitivos,Chambord,Otros importadores,1000,150400.0,143800.0,156700.0,111140.0,False,False,0,21
+KY-0403,Lillet Rosé 1000 ml,Licores y aperitivos,Lillet,Pernod Ricard,1000,122800.0,113800.0,125700.0,92990.0,False,False,907,570
+KY-0404,Baileys Salted Caramel 1000 ml,Licores y aperitivos,Baileys,Diageo,1000,78300.0,70000.0,84500.0,58310.0,False,False,1,1
+KY-0405,Jägermeister 1000 ml,Licores y aperitivos,Jägermeister,Otros importadores,1000,118000.0,109900.0,124600.0,89180.0,False,False,14,7
+KY-0406,Pernod Absinthe 1000 ml,Licores y aperitivos,Pernod,Pernod Ricard,1000,117400.0,102500.0,118900.0,82260.0,False,False,0,15
+KY-0407,Malibu 1000 ml,Licores y aperitivos,Malibu,Pernod Ricard,1000,105300.0,93500.0,106400.0,66980.0,False,False,194,145
+KY-0408,Cerveza 3 Cordilleras x12,Cerveza,3 Cordilleras,Otros importadores,0,27900.0,27300.0,28300.0,21310.0,False,False,0,6
+KY-0409,Cerveza Coronita x6,Cerveza,Coronita,Bavaria,0,25200.0,22900.0,26600.0,19720.0,False,False,38,27
+KY-0410,Cerveza Budweiser x12,Cerveza,Budweiser,Bavaria,0,29600.0,29000.0,30300.0,22050.0,False,False,2,1
+KY-0411,Cerveza Coronita x12,Cerveza,Coronita,Bavaria,0,23700.0,22400.0,23700.0,16800.0,False,False,0,18
+KY-0412,Cerveza Heineken x12,Cerveza,Heineken,Otros importadores,0,27600.0,25400.0,28100.0,20560.0,False,False,92,74
+KY-0413,Cerveza 3 Cordilleras x6,Cerveza,3 Cordilleras,Otros importadores,0,27300.0,25800.0,29100.0,21250.0,False,False,224,154
+KY-0414,Cerveza Erdinger x6,Cerveza,Erdinger,Otros importadores,0,25400.0,23300.0,27100.0,18940.0,False,False,74,39
+KY-0415,Cerveza Corona x12,Cerveza,Corona,Bavaria,0,22300.0,21300.0,24000.0,16440.0,False,False,41,26
+KY-0416,Cerveza Corona x6,Cerveza,Corona,Bavaria,0,23500.0,22000.0,24200.0,17840.0,False,False,82,65
+KY-0417,Cerveza Club Colombia Negra x6,Cerveza,Club Colombia Negra,Bavaria,0,25200.0,24100.0,25500.0,18520.0,False,False,0,3
+KY-0418,Cerveza Club Colombia Negra x12,Cerveza,Club Colombia Negra,Bavaria,0,28400.0,25100.0,29100.0,21170.0,False,False,2,2
+KY-0419,Cerveza BBC x6,Cerveza,BBC,Bavaria,0,22300.0,20400.0,22600.0,15830.0,False,False,35,26
+KY-0420,Cerveza Peroni x12,Cerveza,Peroni,Otros importadores,0,27100.0,26600.0,27600.0,18340.0,False,False,37,15
+KY-0421,Cerveza Miller x6,Cerveza,Miller,Otros importadores,0,19800.0,19400.0,20300.0,15400.0,False,False,142,61
+KY-0422,Cerveza Erdinger x12,Cerveza,Erdinger,Otros importadores,0,22700.0,21100.0,23500.0,16560.0,False,False,77,63
+KY-0423,Cerveza BBC x12,Cerveza,BBC,Bavaria,0,25900.0,23500.0,27800.0,19370.0,False,False,1,1
+KY-0424,Cerveza Peroni x6,Cerveza,Peroni,Otros importadores,0,31800.0,27500.0,34500.0,23750.0,False,False,0,20
+KY-0425,Cerveza Miller x12,Cerveza,Miller,Otros importadores,0,24000.0,22600.0,25100.0,16850.0,False,False,0,7
+KY-0426,Cerveza Heineken x6,Cerveza,Heineken,Otros importadores,0,20300.0,18100.0,21600.0,14990.0,False,False,0,4
+KY-0427,Perrier x6,Mixers y aguas,Perrier,Otros importadores,0,18900.0,18300.0,19100.0,12060.0,False,False,104,43
+KY-0428,Coca-Cola Original x6,Mixers y aguas,Coca-Cola,Otros importadores,0,23300.0,21200.0,25000.0,16130.0,False,False,180,88
+KY-0429,Coca-Cola Sin Azúcar x6,Mixers y aguas,Coca-Cola,Otros importadores,0,23400.0,20800.0,24400.0,14960.0,False,False,96,80
+KY-0430,Fever-Tree Mediterránea x4,Mixers y aguas,Fever-Tree,Otros importadores,0,17200.0,16700.0,18100.0,10670.0,False,False,56,35
+KY-0431,Fever-Tree Ginger Beer x4,Mixers y aguas,Fever-Tree,Otros importadores,0,14700.0,13200.0,15700.0,9330.0,False,False,3,3
+KY-0432,Red Bull Tropical x4,Mixers y aguas,Red Bull,Otros importadores,0,15900.0,14000.0,16500.0,9630.0,False,False,0,11
+KY-0433,San Pellegrino x6,Mixers y aguas,San Pellegrino,Otros importadores,0,19200.0,18600.0,20800.0,12210.0,False,False,152,123
+KY-0434,Schweppes Tónica x6,Mixers y aguas,Schweppes,Otros importadores,0,22200.0,21000.0,22500.0,13850.0,False,False,77,60
+KY-0435,Red Bull x4,Mixers y aguas,Red Bull,Otros importadores,0,18300.0,16900.0,19300.0,10730.0,False,False,123,57
+KY-0436,Hielo en cubos 5 kg,Mixers y aguas,Hielo en cubos,Otros importadores,0,16400.0,15100.0,17100.0,10260.0,False,False,106,60
+KY-0437,Fever-Tree Tónica x4,Mixers y aguas,Fever-Tree,Otros importadores,0,21600.0,19700.0,22600.0,14530.0,False,False,46,24
+KY-0438,Schweppes Ginger Ale x6,Mixers y aguas,Schweppes,Otros importadores,0,21700.0,21300.0,23400.0,13810.0,False,False,2,2
+KY-0439,Chocolates Cacao Hunters Caja x12,Accesorios gourmet,Chocolates Cacao Hunters,Otros importadores,0,51100.0,50100.0,55600.0,27130.0,False,False,6,5
+KY-0440,Caja de regalo KYVA Premium,Accesorios gourmet,Caja de regalo KYVA,Otros importadores,0,55000.0,49100.0,58200.0,27820.0,False,False,30,23
+KY-0441,Sacacorchos Laguiole,Accesorios gourmet,Sacacorchos Laguiole,Otros importadores,0,68600.0,66700.0,71500.0,35600.0,False,False,8,4
+KY-0442,Copas Riedel Vino x2,Accesorios gourmet,Copas Riedel,Otros importadores,0,98600.0,92400.0,100000.0,51200.0,False,False,2,1
+KY-0443,Decantador,Accesorios gourmet,Decantador,Otros importadores,0,62900.0,60700.0,67700.0,29140.0,False,False,17,11
+KY-0444,Set de cata KYVA,Accesorios gourmet,Set de cata KYVA,Otros importadores,0,75100.0,68100.0,78800.0,35860.0,False,False,36,26
+KY-0445,Hielera,Accesorios gourmet,Hielera,Otros importadores,0,58400.0,54700.0,63400.0,32220.0,False,False,8,5
+KY-0446,Copas Riedel Whisky x2,Accesorios gourmet,Copas Riedel,Otros importadores,0,87800.0,86000.0,90300.0,43570.0,False,False,0,11
+KY-0447,Tabla de quesos,Accesorios gourmet,Tabla de quesos,Otros importadores,0,79500.0,76600.0,84700.0,39420.0,False,False,27,12

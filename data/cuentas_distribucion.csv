@@ -1,0 +1,71 @@
+cuenta_id,tipo,zona,alta,baja
+D-001,Bar y coctelería,Kennedy,2024-07-10,2025-06-02
+D-002,Bar y coctelería,Engativá,2024-07-14,
+D-003,Licorera o tienda,Teusaquillo,2024-09-24,2025-08-26
+D-004,Bar y coctelería,Engativá,2024-10-06,
+D-005,Restaurante,La Calera,2024-10-15,
+D-006,Bar y coctelería,Fontibón,2024-12-24,2025-12-18
+D-007,Restaurante,Suba,2024-12-19,
+D-008,Bar y coctelería,Usaquén,2024-12-07,
+D-009,Restaurante,Usaquén,2024-12-26,2025-12-10
+D-010,Bar y coctelería,Barrios Unidos,2025-01-21,
+D-011,Restaurante,Sopó,2025-01-26,
+D-012,Bar y coctelería,Fontibón,2025-01-16,
+D-013,Restaurante,Usaquén,2025-02-23,2026-03-24
+D-014,Bar y coctelería,Chapinero,2025-02-14,
+D-015,Licorera o tienda,Usaquén,2025-02-10,2025-08-10
+D-016,Hotel,Chapinero,2025-02-02,
+D-017,Restaurante,Chía,2025-03-18,
+D-018,Licorera o tienda,Chapinero,2025-03-05,
+D-019,Bar y coctelería,Fontibón,2025-03-05,
+D-020,Bar y coctelería,Chapinero,2025-04-15,
+D-021,Hotel,Santa Fe y Candelaria,2025-05-03,
+D-022,Licorera o tienda,Cajicá,2025-06-22,2026-06-10
+D-023,Club social,Suba,2025-06-02,
+D-024,Bar y coctelería,Chapinero,2025-06-23,2025-11-24
+D-025,Bar y coctelería,Usaquén,2025-08-16,
+D-026,Club social,Suba,2025-09-02,
+D-027,Club social,Cajicá,2025-09-08,
+D-028,Restaurante,Suba,2025-09-16,
+D-029,Club social,Chía,2025-09-04,2026-01-25
+D-030,Restaurante,Suba,2025-10-22,
+D-031,Restaurante,Usaquén,2025-10-10,
+D-032,Licorera o tienda,Usaquén,2025-10-16,
+D-033,Bar y coctelería,Suba,2025-11-27,2026-12-23
+D-034,Restaurante,Chapinero,2025-12-12,
+D-035,Restaurante,Barrios Unidos,2026-01-15,
+D-036,Hotel,Teusaquillo,2026-01-23,
+D-037,Club social,Usaquén,2026-01-10,2026-12-08
+D-038,Bar y coctelería,Chapinero,2026-01-13,
+D-039,Licorera o tienda,Suba,2026-01-05,
+D-040,Bar y coctelería,Engativá,2026-01-14,
+D-041,Licorera o tienda,Suba,2026-02-08,
+D-042,Restaurante,Chapinero,2026-02-26,2027-01-24
+D-043,Restaurante,Usaquén,2026-02-19,
+D-044,Hotel,Chapinero,2026-02-05,
+D-045,Licorera o tienda,Chapinero,2026-02-24,
+D-046,Bar y coctelería,Suba,2026-03-14,
+D-047,Restaurante,Chapinero,2026-03-23,
+D-048,Club social,Suba,2026-03-26,
+D-049,Restaurante,Fontibón,2026-03-26,
+D-050,Bar y coctelería,La Calera,2026-04-18,
+D-051,Club social,Usaquén,2026-04-14,
+D-052,Bar y coctelería,Suba,2026-04-21,
+D-053,Restaurante,Usaquén,2026-04-26,
+D-054,Licorera o tienda,Usaquén,2026-04-24,
+D-055,Licorera o tienda,Chapinero,2026-04-08,
+D-056,Restaurante,Teusaquillo,2026-04-12,
+D-057,Hotel,Suba,2026-05-03,2026-08-27
+D-058,Restaurante,Chapinero,2026-05-22,2026-11-10
+D-059,Hotel,Suba,2026-05-04,2026-11-03
+D-060,Bar y coctelería,Usaquén,2026-05-07,
+D-061,Bar y coctelería,Usaquén,2026-05-02,
+D-062,Licorera o tienda,Barrios Unidos,2026-06-26,2026-11-18
+D-063,Hotel,Barrios Unidos,2026-06-22,
+D-064,Licorera o tienda,Chapinero,2026-06-11,
+D-065,Licorera o tienda,Santa Fe y Candelaria,2026-07-04,
+D-066,Restaurante,Usaquén,2026-08-04,
+D-067,Licorera o tienda,Barrios Unidos,2026-08-20,
+D-068,Restaurante,Sopó,2026-08-06,
+D-069,Bar y coctelería,Usaquén,2026-08-24,
+D-070,Restaurante,Teusaquillo,2026-08-04,

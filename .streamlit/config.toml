@@ -1,0 +1,22 @@
+[theme]
+base = "light"
+primaryColor = "#0E113A"
+backgroundColor = "#F7FBFF"
+secondaryBackgroundColor = "#F1F8FE"
+textColor = "#052E4A"
+font = "sans serif"
+
+[browser]
+gatherUsageStats = false
+
+# Ojo: NO poner `runOnSave = true` aquí.
+# El panel escribe `visit_log.json` dentro de su propio directorio, y con
+# runOnSave activo Streamlit Cloud detecta ese archivo como un cambio, recarga,
+# vuelve a registrar la visita, vuelve a escribir el archivo y se queda en un
+# loop infinito de "your app is in the oven". Ya pasó en paranice-demo.
+[server]
+fileWatcherType = "none"
+
+[client]
+showErrorDetails = false
+toolbarMode = "minimal"

@@ -1,0 +1,10 @@
+# Rangos verificados: el panel se probó con streamlit 1.50, pandas 2.3.3,
+# numpy 2.0.2 y plotly 7.0.0.
+# pandas se fija por debajo de 3.0 a propósito: el salto de major cambia el
+# manejo de copias y el dtype de texto por defecto, y eso no se ha probado
+# contra este panel. Súbelo solo después de correr `python3 pruebas.py`.
+streamlit>=1.40,<2
+pandas>=2.2,<3
+numpy>=1.24,<3
+plotly>=5.18,<8
+anthropic>=0.25.0
