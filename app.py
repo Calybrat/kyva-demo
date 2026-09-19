@@ -1,3 +1,4 @@
+import importlib
 import sys
 from pathlib import Path
 
@@ -116,9 +117,38 @@ if panel_solicitado():
     st.stop()
 
 # ── Módulo activo ─────────────────────────────────────────────────────────────
+# `__import__` cachea en sys.modules, y Streamlit Cloud no reinicia el proceso
+# cuando llega código nuevo: re-ejecuta ESTE archivo —por eso un menú nuevo
+# aparece de inmediato— pero deja los módulos ya importados en la versión con
+# la que arrancó el contenedor. El 19-sep eso dejó cuatro pantallas caídas con
+# «module 'utils.datos' has no attribute 'alertas'» aunque el código correcto
+# llevaba horas en GitHub, y solo se arreglaba pulsando «Reboot app» a mano.
+#
+# Comparar la fecha del archivo en disco contra la del módulo cargado cierra
+# ese hueco. Hay que recargar primero `utils`: los módulos guardan una
+# referencia AL OBJETO módulo, así que recargarlo en el sitio les actualiza las
+# funciones sin tener que recargarlos a ellos por dependencia.
+def _al_dia(nombre: str) -> None:
+    """Recarga un módulo si su archivo cambió en disco desde que se importó."""
+    m = sys.modules.get(nombre)
+    if m is None or not getattr(m, "__file__", None):
+        return
+    try:
+        tocado = Path(m.__file__).stat().st_mtime
+    except OSError:
+        return
+    if tocado > getattr(m, "_cargado_en", 0):
+        importlib.reload(m)
+        sys.modules[nombre]._cargado_en = tocado
+
+
 module_name = PAGES[st.session_state.page]
 try:
+    for previo in ("utils.formatters", "utils.datos", "utils.operacion"):
+        _al_dia(previo)
     mod = __import__(f"modules.{module_name}", fromlist=[module_name])
+    _al_dia(f"modules.{module_name}")
+    mod = sys.modules[f"modules.{module_name}"]
     mod.render()
 except Exception as e:
     st.error(f"Error cargando módulo: {e}")
