@@ -9,13 +9,20 @@ font = "sans serif"
 [browser]
 gatherUsageStats = false
 
-# Ojo: NO poner `runOnSave = true` aquí.
-# El panel escribe `visit_log.json` dentro de su propio directorio, y con
-# runOnSave activo Streamlit Cloud detecta ese archivo como un cambio, recarga,
-# vuelve a registrar la visita, vuelve a escribir el archivo y se queda en un
-# loop infinito de "your app is in the oven". Ya pasó en paranice-demo.
+# El vigilante vuelve a estar encendido, y ahora sí se puede.
+#
+# Estuvo apagado porque el registro de visitas se escribía dentro del propio
+# directorio del panel: cada visita parecía un cambio de código, recargaba, y
+# el panel se quedaba en "your app is in the oven" (ya había pasado en
+# paranice-demo). Pero apagarlo trajo algo peor — Streamlit Cloud dejó de
+# enterarse de los despliegues nuevos y el contenedor siguió sirviendo el
+# código del arranque.
+#
+# Ahora el registro vive fuera del árbol (ver utils/visitas.py), así que el
+# vigilante no lo ve. `runOnSave` sigue SIN poner: vigilar basta para que un
+# despliegue nuevo se recompile; recargar solo no hace falta.
 [server]
-fileWatcherType = "none"
+fileWatcherType = "auto"
 
 [client]
 showErrorDetails = false

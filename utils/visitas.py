@@ -10,12 +10,27 @@ El panel con esas visitas no se muestra a nadie: solo aparece si se entra con
 """
 import datetime
 import json
+import os
+import tempfile
 import urllib.request
 from pathlib import Path
 
 import streamlit as st
 
-_LOG = Path(__file__).parent.parent / "visit_log.json"
+# El registro vive FUERA del árbol del repo, y eso no es cosmético.
+#
+# Estaba en la raíz del proyecto, y como Streamlit vigila ese árbol, cada visita
+# escribía el archivo, el vigilante lo veía como código cambiado, recargaba, se
+# registraba otra vez la visita… y el panel se quedaba en «your app is in the
+# oven». Se arregló apagando el vigilante (`fileWatcherType = "none"`), y esa
+# cura trajo una enfermedad peor: con el vigilante apagado Streamlit Cloud
+# tampoco se entera de que llegó código nuevo, y el contenedor sigue sirviendo
+# la versión con la que arrancó. El 19-sep eso dejó cuatro pantallas caídas
+# durante horas con el código correcto ya en GitHub.
+#
+# Sacando el archivo del árbol vigilado, las dos cosas se pueden tener: el
+# registro escribe sin provocar recargas y el vigilante puede quedar encendido.
+_LOG = Path(os.environ.get("KYVA_LOG_DIR", tempfile.gettempdir())) / "kyva_visit_log.json"
 CLAVE_PANEL = "calybrat"
 
 
