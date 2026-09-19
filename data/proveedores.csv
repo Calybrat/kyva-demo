@@ -1,0 +1,9 @@
+proveedor,referencias,valor_inventario,dias_reposicion,nacional,demanda_dia,pedido_minimo_u,moneda,cumplimiento_pct
+Pernod Ricard,77,473144000.0,53,True,62.67,24,COP,94.2
+Diageo,48,375301500.0,57,True,69.653,24,COP,89.4
+Otros importadores,177,358987690.0,38,True,97.597,24,COP,90.4
+Distribución KYVA,6,153963620.0,13,True,15.132,24,COP,90.2
+Marpico,47,55523690.0,37,False,12.721,60,USD,87.0
+Bacardí,24,50416720.0,50,True,12.745,24,COP,95.5
+Global Wine & Spirits,57,43718140.0,35,False,17.185,60,USD,73.9
+Bavaria,11,12010700.0,6,True,10.712,24,COP,96.9

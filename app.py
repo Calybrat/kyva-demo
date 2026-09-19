@@ -48,6 +48,12 @@ GRUPOS = [
     ]),
     ("¿Qué viene?", [
         ("🎄  Temporada de fin de año", "p13_temporada"),
+        ("📈  Proyección de cierre", "p18_proyeccion"),
+        ("📦  Reposición y compras", "p17_reposicion"),
+    ]),
+    ("¿Qué se hace solo?", [
+        ("⚙️  Automatizaciones", "p16_automatizaciones"),
+        ("🔔  Alertas", "p19_alertas"),
     ]),
     ("Dirección", [
         ("📄  Reportes Automáticos", "p14_reportes"),

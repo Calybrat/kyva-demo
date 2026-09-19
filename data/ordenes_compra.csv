@@ -1,0 +1,47 @@
+orden,sku,nombre,proveedor,bodega,unidades,valor,emitida,eta,eta_real,dias_atraso,estado
+OC-2026-0001,KY-0311,Vodka Ketel One,Diageo,Medellín,60,3382800,2026-07-27,2026-09-17,2026-09-17,0,En tránsito
+OC-2026-0002,KY-0322,Vodka Ketel One 1000 ml,Diageo,Medellín,116,9116440,2026-07-18,2026-09-04,2026-09-04,0,En tránsito
+OC-2026-0003,KY-0080,Whisky Old Parr 18 años 1000 ml,Diageo,Medellín,60,25824600,2026-07-09,2026-09-11,2026-09-11,0,En tránsito
+OC-2026-0004,KY-0142,Vino Montes Cabernet Sauvignon,Global Wine & Spirits,Bogotá,60,4649400,2026-08-09,2026-09-22,2026-09-22,0,En tránsito
+OC-2026-0005,KY-0316,Vodka Cîroc Red Berry,Diageo,Medellín,60,6198600,2026-08-07,2026-09-18,2026-09-30,12,En tránsito
+OC-2026-0006,KY-0030,Whisky Dewar's 15 años,Bacardí,Medellín,60,13188600,2026-08-19,2026-11-06,2026-11-06,0,En tránsito
+OC-2026-0007,KY-0068,Whisky Johnnie Walker Blue Label,Diageo,Bogotá,60,40572000,2026-08-09,2026-10-23,2026-10-23,0,En tránsito
+OC-2026-0008,KY-0032,Whisky Bulleit Bourbon,Diageo,Bogotá,60,6471000,2026-08-07,2026-10-28,2026-10-28,0,En tránsito
+OC-2026-0009,KY-0401,Kahlúa 1000 ml,Pernod Ricard,Bogotá,60,3510600,2026-08-17,2026-10-03,2026-10-03,0,En tránsito
+OC-2026-0010,KY-0078,Whisky Something Special 1000 ml,Pernod Ricard,Medellín,60,4150800,2026-08-10,2026-10-09,2026-10-09,0,En tránsito
+OC-2026-0011,KY-0041,Whisky Jack Daniel's Honey,Otros importadores,Medellín,60,8001000,2026-08-20,2026-11-11,2026-11-11,0,En tránsito
+OC-2026-0012,KY-0323,Vodka Smirnoff 1000 ml,Diageo,Medellín,60,2758800,2026-07-17,2026-09-12,2026-09-12,0,En tránsito
+OC-2026-0013,KY-0092,Whisky Johnnie Walker Blue Label 1000 ml,Diageo,Bogotá,60,40060200,2026-08-21,2026-11-03,2026-11-09,6,En tránsito
+OC-2026-0014,KY-0197,Vino Beronia Chardonnay,Global Wine & Spirits,Bogotá,60,2158800,2026-08-28,2026-10-12,2026-10-12,0,En tránsito
+OC-2026-0015,KY-0107,Vino Catena Rosé,Marpico,Medellín,60,4992600,2026-08-16,2026-09-26,2026-09-26,0,En tránsito
+OC-2026-0016,KY-0286,Don Julio Reposado,Diageo,Medellín,60,6970200,2026-08-24,2026-10-08,2026-10-08,0,En tránsito
+OC-2026-0017,KY-0346,Mumm Rosé,Pernod Ricard,Medellín,60,8065800,2026-08-07,2026-10-07,2026-10-07,0,En tránsito
+OC-2026-0018,KY-0306,Vodka Cîroc,Diageo,Bogotá,60,6920400,2026-08-10,2026-10-05,2026-10-05,0,En tránsito
+OC-2026-0019,KY-0282,Ginebra Monkey 47,Pernod Ricard,Medellín,60,9115800,2026-08-16,2026-10-17,2026-10-17,0,En tránsito
+OC-2026-0020,KY-0337,Dom Pérignon Vintage,Otros importadores,Medellín,60,65875800,2026-08-27,2026-11-07,2026-11-07,0,En tránsito
+OC-2026-0021,KY-0355,Demonio de los Andes Quebranta,Otros importadores,Medellín,60,3854400,2026-07-19,2026-09-18,2026-09-18,0,En tránsito
+OC-2026-0022,KY-0405,Jägermeister 1000 ml,Otros importadores,Bogotá,60,5350800,2026-07-26,2026-09-18,2026-09-18,0,En tránsito
+OC-2026-0023,KY-0145,Vino Catena Merlot,Marpico,Bogotá,60,3253800,2026-08-05,2026-09-17,2026-09-17,0,En tránsito
+OC-2026-0024,KY-0232,Vino Beronia Carménère,Global Wine & Spirits,Medellín,60,2644800,2026-08-07,2026-09-17,2026-09-27,10,En tránsito
+OC-2026-0025,KY-0084,Whisky Buchanan's Master 1000 ml,Diageo,Medellín,60,15010800,2026-07-26,2026-10-19,2026-10-19,0,En tránsito
+OC-2026-0026,KY-0082,Whisky Ballantine's 12 años 1000 ml,Pernod Ricard,Bogotá,60,4240800,2026-08-17,2026-10-22,2026-11-03,12,En tránsito
+OC-2026-0027,KY-0349,Freixenet Prosecco,Otros importadores,Bogotá,97,6078020,2026-07-28,2026-10-01,2026-10-01,0,En tránsito
+OC-2026-0028,KY-0373,Martini Bianco,Bacardí,Bogotá,60,710400,2026-07-18,2026-09-13,2026-09-13,0,En tránsito
+OC-2026-0029,KY-0062,Whisky Ballantine's 12 años,Pernod Ricard,Medellín,60,3739800,2026-07-10,2026-09-26,2026-09-26,0,En tránsito
+OC-2026-0030,KY-0378,Cointreau,Otros importadores,Bogotá,60,4474800,2026-07-08,2026-08-24,2026-08-24,0,Recibida
+OC-2026-0031,KY-0016,Aguardiente Mil Demonios 375 ml,Distribución KYVA,Bogotá,49,1750770,2026-08-01,2026-08-08,2026-08-08,0,Recibida
+OC-2026-0032,KY-0089,Whisky Monkey Shoulder 1000 ml,Otros importadores,Medellín,60,9142200,2026-07-09,2026-09-08,2026-09-19,11,En tránsito
+OC-2026-0033,KY-0068,Whisky Johnnie Walker Blue Label,Diageo,Medellín,60,40572000,2026-08-09,2026-10-23,2026-10-23,0,En tránsito
+OC-2026-0034,KY-0272,Ginebra Bombay Sapphire,Bacardí,Bogotá,60,4328400,2026-08-02,2026-09-28,2026-10-02,4,En tránsito
+OC-2026-0035,KY-0387,Baileys Salted Caramel,Diageo,Bogotá,60,2971800,2026-08-03,2026-09-14,2026-09-14,0,En tránsito
+OC-2026-0036,KY-0315,Vodka Belvedere,Otros importadores,Medellín,60,5941800,2026-08-23,2026-09-30,2026-09-30,0,En tránsito
+OC-2026-0037,KY-0359,Demonio de los Andes Acholado,Otros importadores,Medellín,60,3971400,2026-08-07,2026-09-24,2026-09-24,0,En tránsito
+OC-2026-0038,KY-0052,Whisky Johnnie Walker Black Label,Diageo,Medellín,60,5617800,2026-08-04,2026-10-16,2026-10-16,0,En tránsito
+OC-2026-0039,KY-0093,Whisky Glenfiddich 15 años 1000 ml,Otros importadores,Bogotá,60,12983400,2026-08-03,2026-10-13,2026-10-13,0,En tránsito
+OC-2026-0040,KY-0045,Whisky Buchanan's 18 años,Diageo,Bogotá,60,27790800,2026-08-09,2026-10-31,2026-10-31,0,En tránsito
+OC-2026-0041,KY-0271,Ginebra Roku,Otros importadores,Bogotá,60,5676600,2026-08-03,2026-09-27,2026-09-27,0,En tránsito
+OC-2026-0042,KY-0058,Whisky Chivas Regal Mizunara,Pernod Ricard,Medellín,60,29857800,2026-08-17,2026-11-09,2026-11-09,0,En tránsito
+OC-2026-0043,KY-0064,Whisky Jack Daniel's Fire,Otros importadores,Bogotá,60,9606600,2026-07-21,2026-09-15,2026-09-24,9,En tránsito
+OC-2026-0044,KY-0093,Whisky Glenfiddich 15 años 1000 ml,Otros importadores,Medellín,60,12983400,2026-08-06,2026-10-16,2026-10-16,0,En tránsito
+OC-2026-0045,KY-0315,Vodka Belvedere,Otros importadores,Bogotá,60,5941800,2026-08-28,2026-10-05,2026-10-05,0,En tránsito
+OC-2026-0046,KY-0053,Whisky Jameson Black Barrel,Pernod Ricard,Bogotá,60,4001400,2026-08-25,2026-10-22,2026-10-22,0,En tránsito
