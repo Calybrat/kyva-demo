@@ -18,6 +18,7 @@ import streamlit as st
 
 from utils.formatters import *
 from utils import datos
+from utils import operacion
 
 MESES_PROY = 4          # septiembre a diciembre de 2026
 
@@ -179,7 +180,7 @@ def render():
     st.markdown(espacio(14), unsafe_allow_html=True)
 
     # ── El puente con la compra ─────────────────────────────────────────────
-    r = datos.resumen_operacion()
+    r = operacion.resumen_operacion()
     st.markdown(panel(
         "Lo que esta proyección obliga a hacer hoy",
         f"Si noviembre y diciembre van a valer <b>{cop(pico, 0)}</b>, la mercancía "

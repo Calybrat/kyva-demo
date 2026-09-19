@@ -25,6 +25,7 @@ import streamlit as st
 
 from utils.formatters import *
 from utils import datos
+from utils import operacion
 
 SISTEMA_COLOR = {"Loggro": PRIMARIO, "WooCommerce": "#6A4C93",
                  "Salesforce": "#2B7A9B", "Operador logístico": "#B5762F",
@@ -82,9 +83,9 @@ def render():
         "Los procesos que el sistema ejecuta sobre Loggro, WooCommerce y Salesforce · últimos 30 días",
         "¿Qué se hace solo?"), unsafe_allow_html=True)
 
-    aut = datos.automatizaciones()
-    eje = datos.ejecuciones()
-    r = datos.resumen_operacion()
+    aut = operacion.automatizaciones()
+    eje = operacion.ejecuciones()
+    r = operacion.resumen_operacion()
 
     k = st.columns(4, gap="small")
     k[0].markdown(kpi(

@@ -26,6 +26,7 @@ import streamlit as st
 
 from utils.formatters import *
 from utils import datos
+from utils import operacion
 
 ORDEN_URGENCIA = ["Ventana cerrada", "Pedir esta semana", "Pedir este mes", "Hay tiempo"]
 COLOR_URGENCIA = {"Ventana cerrada": "#8B1E1E", "Pedir esta semana": ACENTO,
@@ -39,10 +40,10 @@ def render():
         "Qué pedir para la temporada, cuánto, y la fecha límite de cada referencia · corte 31 de agosto",
         "¿Qué hay que comprar?"), unsafe_allow_html=True)
 
-    inv = datos.inventario()
-    oc = datos.ordenes_compra()
-    prov = datos.proveedores()
-    r = datos.resumen_operacion()
+    inv = operacion.inventario()
+    oc = operacion.ordenes_compra()
+    prov = operacion.proveedores()
+    r = operacion.resumen_operacion()
     falt = r["faltantes"]
 
     rota = inv[inv["demanda_dia"] > 0]

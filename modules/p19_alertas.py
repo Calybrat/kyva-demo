@@ -17,6 +17,7 @@ import streamlit as st
 
 from utils.formatters import *
 from utils import datos
+from utils import operacion
 
 TONO = {"Alta": "#8B1E1E", "Media": "#B5762F", "Baja": CLARO}
 ICONO = {"Quiebre de stock": "📦", "Importación atrasada": "🚢",
@@ -52,9 +53,9 @@ def render():
         "Lo que se salió de lo normal, a quién se le avisó y en qué terminó · últimos 45 días",
         "¿Qué necesita atención?"), unsafe_allow_html=True)
 
-    ale = datos.alertas()
-    inv = datos.inventario()
-    r = datos.resumen_operacion()
+    ale = operacion.alertas()
+    inv = operacion.inventario()
+    r = operacion.resumen_operacion()
 
     sin_atender = ale["desenlace"].str.contains("Sin atender|Pendiente", case=False)
     altas = ale[ale["gravedad"] == "Alta"]
