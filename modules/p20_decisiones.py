@@ -9,8 +9,12 @@ veinte segundos:
 
   1. **El número que la justifica**, no una alerta genérica.
   2. **Las opciones concretas**, redactadas como se dirían en una reunión.
-  3. **Lo que cuesta no hacer nada**, anualizado. Es lo que ordena la bandeja:
-     no por gravedad declarada sino por plata en juego.
+  3. **Lo que cuesta no hacer nada**, y —esto es lo que hace que el orden
+     signifique algo— en la MISMA unidad para todas: utilidad en riesgo a doce
+     meses. Sumar venta anual de una cuenta apagada con margen negativo de otra
+     y con el costo de una mercancía que falta da un número que no quiere decir
+     nada, y es la primera objeción que hace cualquiera que sepa de finanzas.
+     Aquí cada fila se traduce antes de entrar.
   4. **Quién decide.** Una decisión sin dueño vuelve a aparecer el lunes.
 
 La bandeja junta lo que hoy vive en ocho lugares distintos: el ERP, el informe
@@ -37,6 +41,7 @@ septiembre.
 acción la confirma una persona. Es la misma regla del módulo de
 automatizaciones y es lo que permite que un director de operaciones diga que sí.
 """
+import hashlib
 import re
 
 import numpy as np
@@ -70,10 +75,58 @@ DUENO_POR_AREA = {
     "Dirección": "Javier",
 }
 
+# ── La unidad en que se mide la bandeja ──────────────────────────────────────
+#
+# Todas las filas se valoran en UTILIDAD EN RIESGO A DOCE MESES. Sin una unidad
+# común el orden es una ilusión: $43 M de venta que se apaga no pesan lo mismo
+# que $43 M de margen, y un KPI que los suma no significa nada. La regla es:
+# lo que se pierde de una vez —una factura que no se recupera, producto que se
+# vence, un rebate que no se devenga— entra completo; lo que se repite mes a
+# mes entra por los meses que faltan hasta cerrar el año; y lo que está
+# denominado en VENTA se convierte a margen antes de entrar.
+
 # Quedan cuatro meses hasta el cierre del año (el corte del panel es agosto).
 # Una brecha de presupuesto que nadie corrige se repite los meses que faltan:
 # por eso se anualiza así y no se reporta el número del mes a secas.
 MESES_AL_CIERRE = 4
+
+# Costo de financiar capital de trabajo en Colombia. Es lo que cuesta al año
+# sostener la exposición de un cliente por encima del cupo que respalda.
+COSTO_CAPITAL = 0.18
+
+# Costo cargado de la hora de quien destraba un pedido a mano. Un auxiliar de
+# operaciones sale en ~$3,0 M al mes con prestaciones y parafiscales (básico de
+# ~$1,9 M por un factor prestacional de 1,55) y trabaja unas 160 horas al mes.
+# La versión anterior usaba $60.000, que es el costo de una persona de $12 M al
+# mes: triplicaba el valor de estas filas.
+COSTO_HORA = 18_750
+
+# Desde cuántos días de mora una factura deja de ser gestión de rutina y pasa a
+# ser una decisión. Son los mismos 15 días que la pantalla de cartera declara
+# como política de bloqueo de despacho —el punto donde la probabilidad de cobro
+# empieza a caer rápido y todavía alcanza una llamada—. Con los 30 que usaba
+# esta bandeja quedaban fuera 38 de las 42 facturas vencidas y la cartera
+# aparecía como el problema más pequeño de la compañía.
+MORA_MINIMA = 15
+
+# Por debajo de qué cumplimiento una brecha de presupuesto es una decisión. Un
+# mes que cierra en 96% de la meta es ruido de un mes, y publicarlo como
+# prioridad de la compañía gasta la credibilidad de toda la bandeja. Si ninguna
+# línea baja del umbral este bloque no aporta filas, y eso está bien: no hay
+# nada que decidir.
+CUMPLIMIENTO_MINIMO = 90
+
+# Cuántas filas caben y cuántas tiene asegurada cada fuente.
+#
+# La versión anterior recortaba DENTRO de cada bloque —cinco de cartera, cuatro
+# de compras— antes del orden final, así que la composición de la bandeja la
+# fijaba una cuota arbitraria por sistema y no el dinero: cartera se llevaba
+# cinco cupos por $1,7 M mientras compras entraba con cuatro por $227 M. Aquí
+# cada fuente tiene aseguradas sus dos filas más caras —eso es lo que sostiene
+# la promesa de «los ocho sistemas en una sola cola»— y el resto de los cupos
+# se reparte por plata entre todas.
+CUPO_BANDEJA = 25
+MINIMO_POR_FUENTE = 2
 
 
 # ── Construcción de la bandeja ───────────────────────────────────────────────
@@ -86,7 +139,23 @@ def _clave(tipo: str, ident: str) -> str:
     —cuenta, marca, proveedor— y no de la posición en una tabla.
     """
     base = re.sub(r"[^a-z0-9]+", "-", f"{tipo}-{ident}".lower()).strip("-")
-    return base[:64]
+    if len(base) <= 64:
+        return base
+    # Truncar a secas hacía colisionar dos motivos de excepción que comparten
+    # los primeros 64 caracteres: `drop_duplicates` habría borrado uno en
+    # silencio y con él la decisión que ya estaba guardada en disco. El sufijo
+    # los separa sin alargar la clave.
+    return f"{base[:57]}-{hashlib.md5(base.encode()).hexdigest()[:6]}"
+
+
+def _corto(txt, n: int = 26) -> str:
+    """Recorta con puntos suspensivos. Un corte seco se lee como un dato malo."""
+    t = str(txt)
+    return t if len(t) <= n else t[:n - 1].rstrip() + "…"
+
+
+def _dia(fecha) -> str:
+    return f"{fecha.day} de {MESES_ES[fecha.month - 1]}"
 
 
 def _a_pesos(txt: str) -> float:
@@ -118,6 +187,41 @@ def _riesgo_de_esperar(saldo: float, tramo: str) -> float:
     return saldo * max(gerencia.COBRO[tramo] - gerencia.COBRO[sig], 0.05)
 
 
+def _en_utilidad(tipo: str, plata: float, margen: float) -> tuple:
+    """Traduce a utilidad en riesgo lo que trae el análisis de cuentas.
+
+    Los tres tipos vienen en unidades distintas y hay que decirlo: «cuenta
+    apagada» está en VENTA anual, «condiciones comerciales» ya está en MARGEN
+    anual y «riesgo de crédito» no es ni lo uno ni lo otro sino capital
+    expuesto sin respaldo. Apilarlos como venían era lo que hacía que el número
+    de arriba no significara nada.
+    """
+    v = abs(float(plata))
+    if tipo == "Cuenta apagada":
+        u = v * margen
+        return u, f"{cop(u, 0)} de margen al año si no vuelve"
+    if tipo == "Riesgo de crédito":
+        u = v * COSTO_CAPITAL
+        return u, f"{cop(u, 0)} al año de financiar lo que no respalda"
+    if tipo == "Condiciones comerciales":
+        return v, f"{cop(v, 0)} al año de margen en rojo"
+    return v, cop(v, 0)
+
+
+def _recortar(b: pd.DataFrame) -> pd.DataFrame:
+    """Elige qué cabe en la bandeja por plata, no por cuota de cada fuente.
+
+    Cada sistema tiene aseguradas sus filas más caras —sin eso la bandeja deja
+    de ser «los ocho sistemas en una sola cola» en cuanto uno de ellos tiene
+    cifras grandes— y los cupos restantes se reparten por dinero entre todas.
+    """
+    b = b.sort_values("costo_inaccion", ascending=False)
+    fijas = b.groupby("origen", sort=False).head(MINIMO_POR_FUENTE)
+    resto = b.drop(fijas.index)
+    sel = pd.concat([fijas, resto.head(max(CUPO_BANDEJA - len(fijas), 0))])
+    return sel.sort_values("costo_inaccion", ascending=False).reset_index(drop=True)
+
+
 def _bandeja() -> pd.DataFrame:
     """Reúne en una sola cola lo que hoy vive repartido en ocho sistemas.
 
@@ -125,29 +229,43 @@ def _bandeja() -> pd.DataFrame:
     Una alerta «alta» de 400 mil pesos no puede ir encima de una «media» de
     catorce millones — y en los sistemas que las producen por separado eso pasa
     todos los días, que es por lo que nadie las lee.
+
+    Para que ese orden signifique algo, todas las filas entran en la misma
+    unidad: utilidad en riesgo a doce meses. Lo que llega denominado en venta o
+    en costo de mercancía se convierte antes, y se dice con qué supuesto.
     """
     filas = []
+    # El margen de la compañía sale del resumen del negocio, no de un supuesto
+    # escrito aquí: si cambia el mix o el costo, la bandeja se reordena sola.
+    margen = b2b.resumen_b2b()["margen_12m_pct"] / 100
 
     # 1. Lo que sale del análisis de cuentas (gen_b2b lo calcula con su costo real)
     d = filtros.aplicar(b2b.decisiones(), col_mes=None)
     for _, r in d.iterrows():
-        plata = _a_pesos(r.get("si_nadie_hace_nada", ""))
+        plata, texto = _en_utilidad(
+            r["tipo"], _a_pesos(r.get("si_nadie_hace_nada", "")), margen)
         filas.append({
             "clave": _clave(r["tipo"], r.get("cuenta") or r["titulo"]),
             "tipo": r["tipo"], "urgencia": r["urgencia"], "titulo": r["titulo"],
             "dato": r["dato"], "opciones": r["accion"],
-            "costo_inaccion": abs(plata), "costo_txt": r["si_nadie_hace_nada"],
+            "costo_inaccion": plata, "costo_txt": texto,
             "decide": r["decide"], "quien": r.get("cuenta", ""),
             "sugerido": r.get("vendedor", ""), "origen": "Análisis de cuentas",
+            "ambito": "",
         })
 
-    # 2. Cartera: lo vencido de más de 30 días, por cuenta
+    # 2. Cartera: lo vencido por encima del umbral de bloqueo, por cuenta
     #
     # Se agrupa por cuenta y no por factura a propósito: nadie llama a una
     # factura, se llama al dueño del bar, y si tiene tres vencidas la
     # conversación es una sola.
-    f = filtros.aplicar(gerencia.facturas())
-    venc = f[(~f["pagada"]) & (f["dias_vencida"] > 30)].copy()
+    #
+    # El filtro de PERIODO no se aplica, igual que en la pantalla de cartera:
+    # el «mes» de una factura es el de emisión, así que filtrar por periodo
+    # esconde justamente la factura vieja que sigue abierta. Con el periodo en
+    # «Mes» este bloque entero desaparecía de la bandeja sin decir nada.
+    f = filtros.aplicar(gerencia.facturas(), col_mes=None)
+    venc = f[(~f["pagada"]) & (f["dias_vencida"] >= MORA_MINIMA)].copy()
     if len(venc):
         venc["riesgo"] = [_riesgo_de_esperar(s, t)
                           for s, t in zip(venc["saldo"], venc["tramo"])]
@@ -158,11 +276,11 @@ def _bandeja() -> pd.DataFrame:
             saldo=("saldo", "sum"), riesgo=("riesgo", "sum"),
             n=("factura", "size"), dias=("dias_vencida", "max"),
             tramo=("tramo", "last")).reset_index()
-        for _, r in por_cuenta.nlargest(5, "riesgo").iterrows():
+        for _, r in por_cuenta.nlargest(12, "riesgo").iterrows():
             filas.append({
                 "clave": _clave("cartera", r["cuenta_id"]),
                 "tipo": "Cartera",
-                "urgencia": "Alta" if r["dias"] > 60 else "Media",
+                "urgencia": "Alta" if r["dias"] > 30 else "Media",
                 "titulo": f"{r['nombre']} debe {cop(r['saldo'])} con {int(r['dias'])} días de mora",
                 "dato": f"{int(r['n'])} factura(s) en el tramo «{r['tramo']}» · "
                         f"{r['canal']} · {r['ciudad']} · vende {r['vendedor']}",
@@ -172,12 +290,14 @@ def _bandeja() -> pd.DataFrame:
                 "costo_txt": f"{cop(r['riesgo'], 0)} que se dejan de recobrar",
                 "decide": "Cartera", "quien": r["nombre"],
                 "sugerido": r["vendedor"], "origen": "Cartera",
+                "ambito": "",
             })
 
     # 3. Marcas: cuotas de trimestre que no llegan al ritmo actual
     #
     # El compromiso con la marca es de la compañía entera, no de una ciudad ni
-    # de un vendedor: por eso este bloque NO pasa por los filtros globales.
+    # de un vendedor: por eso este bloque NO pasa por los filtros globales, y
+    # por eso cada fila lo dice en la tarjeta.
     reb = gerencia.rebates()
     act = reb[reb["trimestre"] == "2026-T3"].copy()
     if len(act):
@@ -187,7 +307,7 @@ def _bandeja() -> pd.DataFrame:
         act["faltan"] = (act["cuota"] - act["proyectado"]).clip(lower=0)
         act["vale_el_tramo"] = act["compra"] / 2 * 3 * act["siguiente_tramo"]
         cortas = act[(act["cumpl_proy"] < 100) & (act["vale_el_tramo"] > 0)]
-        for _, r in cortas.nlargest(4, "vale_el_tramo").iterrows():
+        for _, r in cortas.nlargest(8, "vale_el_tramo").iterrows():
             excl = " (exclusiva)" if r["exclusiva"] else ""
             filas.append({
                 "clave": _clave("marca", f"{r['marca']}-2026t3"),
@@ -204,32 +324,57 @@ def _bandeja() -> pd.DataFrame:
                 "costo_txt": f"{cop(r['vale_el_tramo'], 0)} del tramo que se pierde",
                 "decide": "Compras", "quien": r["marca"],
                 "sugerido": "", "origen": "Marcas y rebate",
+                "ambito": "Toda la compañía",
             })
 
     # 4. Compras cuya ventana de importación se cierra
-    inv = operacion.inventario().rename(columns={"bodega": "ciudad"})
-    inv = filtros.aplicar(inv, col_mes=None)
-    urge = inv[(inv["urgencia"].isin(["Ventana cerrada", "Pedir esta semana"])) &
-               (inv["faltante_pico"] > 0)]
+    #
+    # El faltante se toma NETO de lo que ya viene en camino, que es el mismo
+    # número que muestra la pantalla de reposición. Con el bruto la bandeja
+    # pide comprar mercancía que ya está en el barco, y comprar dos veces lo
+    # mismo es el error caro de un MRP mal hecho.
+    falt = operacion.resumen_operacion()["faltantes"].copy()
+    falt = filtros.aplicar(falt.rename(columns={"bodega": "ciudad"}), col_mes=None)
+    urge = falt[(falt["urgencia"].isin(["Ventana cerrada", "Pedir esta semana"])) &
+                (falt["faltante_neto"] > 0)]
     if len(urge):
         por_prov = urge.groupby("proveedor").agg(
-            refs=("sku", "nunique"), plata=("valor_faltante", "sum"),
-            limite=("fecha_limite_pedido", "min")).reset_index()
-        for _, r in por_prov.nlargest(4, "plata").iterrows():
-            lim = r["limite"]
+            refs=("sku", "nunique"), plata=("valor_neto", "sum"),
+            bruto=("valor_faltante", "sum"),
+            primera=("fecha_limite_pedido", "min"),
+            ultima=("fecha_limite_pedido", "max"),
+            cerradas=("urgencia", lambda s: int((s == "Ventana cerrada").sum())),
+        ).reset_index()
+        for _, r in por_prov.nlargest(8, "plata").iterrows():
+            ini, fin = r["primera"], r["ultima"]
+            # La fecha y el dinero tienen que describir el mismo conjunto. El
+            # titular anterior ponía el límite de UNA referencia sobre la plata
+            # de las dieciocho: era una fecha que no correspondía a esa cifra.
+            cuando = (f"se pide antes del {_dia(ini)}" if ini == fin else
+                      f"se piden entre el {_dia(ini)} y el {_dia(fin)}")
+            vencida = ini <= datos.CORTE
+            en_camino = float(r["bruto"]) - float(r["plata"])
+            # El faltante está valorado AL COSTO. Lo que se pierde por no
+            # tenerlo no es ese costo ni la venta entera: es el margen de la
+            # venta que no va a ocurrir.
+            perdido = float(r["plata"]) * margen / (1 - margen)
             filas.append({
                 "clave": _clave("compra", r["proveedor"]),
-                "tipo": "Compra", "urgencia": "Alta",
-                "titulo": f"Orden a {r['proveedor']} antes del "
-                          f"{lim.day} de {MESES_ES[lim.month - 1]}",
-                "dato": f"{r['refs']} referencias · {cop(r['plata'], 0)} de faltante "
-                        f"para la temporada",
+                "tipo": "Compra",
+                "urgencia": "Alta" if (vencida or r["cerradas"]) else "Media",
+                "titulo": f"Orden a {r['proveedor']}: {int(r['refs'])} "
+                          f"referencia{'s' if r['refs'] != 1 else ''} {cuando}",
+                "dato": f"{cop(r['plata'], 0)} de faltante para la temporada, neto de "
+                        f"lo que viene en camino"
+                        + (f" ({cop(en_camino, 0)} ya está pedido)" if en_camino > 0 else "")
+                        + (" · la primera fecha ya se pasó" if vencida else ""),
                 "opciones": "Emitir la orden sugerida · pedir solo el top 10 · "
                             "asumir el quiebre y comprar a un mayorista local en diciembre",
-                "costo_inaccion": float(r["plata"]) * 0.45,
-                "costo_txt": f"{cop(r['plata'] * 0.45, 0)} de venta perdida estimada",
+                "costo_inaccion": perdido,
+                "costo_txt": f"{cop(perdido, 0)} de margen que no se alcanza a hacer",
                 "decide": "Compras", "quien": r["proveedor"],
                 "sugerido": "", "origen": "Reposición",
+                "ambito": "Solo por ciudad",
             })
 
     # 5. Vencimientos: lotes críticos en bodega
@@ -240,7 +385,7 @@ def _bandeja() -> pd.DataFrame:
         por_marca = cri.groupby(["marca", "ciudad"]).agg(
             plata=("en_riesgo", "sum"), u=("en_riesgo_u", "sum"),
             lotes=("lote", "size"), dias=("dias_para_vencer", "min")).reset_index()
-        for _, r in por_marca.nlargest(3, "plata").iterrows():
+        for _, r in por_marca.nlargest(8, "plata").iterrows():
             filas.append({
                 "clave": _clave("lote", f"{r['marca']}-{r['ciudad']}"),
                 "tipo": "Vencimientos",
@@ -256,6 +401,7 @@ def _bandeja() -> pd.DataFrame:
                 "costo_txt": f"{cop(r['plata'], 0)} que se van a la basura",
                 "decide": "Operaciones", "quien": r["marca"],
                 "sugerido": "", "origen": "Vencimientos",
+                "ambito": "Solo por ciudad",
             })
 
     # 6. Presupuesto: el mes cerrado contra la meta, por canal y ciudad
@@ -265,75 +411,100 @@ def _bandeja() -> pd.DataFrame:
     # todavía se puede corregir. Y se descartan los meses con real en cero
     # —Medellín antes de marzo— porque sumarlos inventa una brecha de cuarenta
     # millones en una ciudad que todavía no existía.
+    #
+    # Se exige además que la brecha sea MATERIAL. Una línea que cierra en 96%
+    # de su meta, en un mes en que la compañía entera está por encima, no es una
+    # decisión de gerencia: publicarla como prioridad de la casa es lo que hace
+    # que nadie vuelva a creerle a la bandeja.
     pre = filtros.aplicar(gerencia.presupuesto())
     pre = pre[pre["real"] > 0]
     if len(pre):
         ult = pre[pre["mes"] == pre["mes"].max()]
-        cortos = ult[ult["brecha"] < 0]
-        for _, r in cortos.nsmallest(3, "brecha").iterrows():
+        cortos = ult[(ult["brecha"] < 0) & (ult["cumplimiento"] < CUMPLIMIENTO_MINIMO)]
+        for _, r in cortos.nsmallest(6, "brecha").iterrows():
+            # La brecha está en VENTA. Lo que se deja de ganar es su margen.
+            perdido = abs(float(r["brecha"])) * MESES_AL_CIERRE * margen
             filas.append({
                 "clave": _clave("presupuesto", f"{r['canal']}-{r['ciudad']}-{r['mes']}"),
                 "tipo": "Presupuesto",
-                "urgencia": "Alta" if r["cumplimiento"] < 90 else "Media",
+                "urgencia": "Alta" if r["cumplimiento"] < 80 else "Media",
                 "titulo": f"{r['canal']} en {r['ciudad']} cerró {mes_es(r['mes'])} en "
                           f"{r['cumplimiento']:.0f}% del presupuesto",
                 "dato": f"Meta {cop(r['presupuesto'], 0)} · real {cop(r['real'], 0)} · "
-                        f"faltaron {cop(abs(r['brecha']), 0)}",
+                        f"faltaron {cop(abs(r['brecha']), 0)} de venta",
                 "opciones": "Revisar la cuota del vendedor de ese canal · "
                             "reasignar el presupuesto del canal al que sí está tirando · "
                             "montar una acción comercial para el trimestre",
-                "costo_inaccion": abs(float(r["brecha"])) * MESES_AL_CIERRE,
-                "costo_txt": f"{cop(abs(r['brecha']) * MESES_AL_CIERRE, 0)} hasta cerrar el año",
+                "costo_inaccion": perdido,
+                "costo_txt": f"{cop(perdido, 0)} de margen hasta cerrar el año",
                 "decide": "Dirección comercial", "quien": f"{r['canal']} · {r['ciudad']}",
                 "sugerido": "", "origen": "Presupuesto",
+                "ambito": "Por canal y ciudad",
             })
 
     # 7. Lo que la automatización no pudo resolver sola
+    #
+    # Los minutos salen de la bitácora —lo que cada corrida se ahorra cuando
+    # sale bien es exactamente lo que cuesta hacerla a mano cuando falla— y no
+    # de un número escrito aquí, que es imposible de contrastar.
     eje = operacion.ejecuciones()
     fallas = eje[eje["resultado"] != "ok"]
     if len(fallas):
-        por_motivo = fallas["motivo"].value_counts().head(2)
-        for motivo, n in por_motivo.items():
+        por_motivo = fallas.groupby("motivo").agg(
+            n=("resultado", "size"), minutos=("minutos_ahorrados", "mean")).reset_index()
+        for _, r in por_motivo.nlargest(5, "n").iterrows():
+            n, minutos = int(r["n"]), float(r["minutos"])
+            horas = n * 12 * minutos / 60
+            plata = horas * COSTO_HORA
             filas.append({
-                "clave": _clave("excepcion", motivo),
+                "clave": _clave("excepcion", r["motivo"]),
                 "tipo": "Excepción", "urgencia": "Media",
-                "titulo": f"{n} pedidos detenidos: {motivo.lower()}",
-                "dato": f"{n} corridas en 30 días se pararon por lo mismo",
+                "titulo": f"{n} pedidos detenidos: {str(r['motivo']).lower()}",
+                "dato": f"{n} corridas en 30 días se pararon por lo mismo · "
+                        f"≈{num(horas)} horas al año a {cop(COSTO_HORA, 0)} la hora",
                 "opciones": "Corregir el dato de origen una vez · dejar la regla como está "
                             "y seguir revisando a mano",
-                "costo_inaccion": n * 11 * 12 * 60_000 / 60,
-                "costo_txt": f"≈{n * 11 * 12 / 60:,.0f} horas al año de revisión manual",
+                "costo_inaccion": plata,
+                "costo_txt": f"{cop(plata, 0)} al año de revisión manual",
                 "decide": "Operaciones", "quien": "",
                 "sugerido": "", "origen": "Automatizaciones",
+                "ambito": "Toda la compañía",
             })
 
     # 8. Precio contra competencia
-    try:
-        pc = datos.precios_competencia()
-        caras = pc[pc["kyva_classic"] > pc["precio_competidor"] * 1.06]
-        if len(caras):
-            filas.append({
-                "clave": _clave("precio", "competencia"),
-                "tipo": "Precio", "urgencia": "Media",
-                "titulo": f"{len(caras)} referencias por encima del competidor",
-                "dato": "  ·  ".join(f"{r['producto'][:26]} +"
-                                     f"{(r['kyva_classic']/r['precio_competidor']-1)*100:.0f}%"
-                                     for _, r in caras.head(3).iterrows()),
-                "opciones": "Igualar el precio · sostenerlo y argumentar servicio · "
-                            "bajar solo en las cuentas donde compiten de frente",
-                "costo_inaccion": 0,
-                "costo_txt": "riesgo de perder la referencia en licitación",
-                "decide": "Dirección comercial", "quien": "",
-                "sugerido": "", "origen": "Precios",
-            })
-    except Exception:
-        pass
+    #
+    # Es la única fila SIN cifra, y se dice: los precios publicados no traen
+    # volumen atado, así que poner un número aquí sería inventarlo. Queda de
+    # última en el orden y no suma al total de arriba. Antes comparaba los
+    # precios en bruto; la comparación buena es por litro —la misma que usa la
+    # pantalla de precios— porque un litro contra 700 ml no se comparan.
+    pc = datos.precios_competencia()
+    caras = pc[pc["dif_classic_pct"] > 6]
+    if len(caras):
+        n = int(len(caras))
+        filas.append({
+            "clave": _clave("precio", "competencia"),
+            "tipo": "Precio", "urgencia": "Media",
+            "titulo": f"{n} referencia{'s' if n != 1 else ''} por encima del "
+                      f"competidor, por litro",
+            "dato": "  ·  ".join(f"{_corto(r['producto'])} +{r['dif_classic_pct']:.0f}% "
+                                 f"vs {r['competidor']}"
+                                 for _, r in caras.nlargest(3, "dif_classic_pct").iterrows())
+                    + " · sin volumen atado, no se puede cifrar el riesgo",
+            "opciones": "Igualar el precio · sostenerlo y argumentar servicio · "
+                        "bajar solo en las cuentas donde compiten de frente",
+            "costo_inaccion": 0.0,
+            "costo_txt": "Sin cifrar",
+            "decide": "Dirección comercial", "quien": "",
+            "sugerido": "", "origen": "Precios",
+            "ambito": "Toda la compañía",
+        })
 
     b = pd.DataFrame(filas)
     if b.empty:
         return b
     b = b.drop_duplicates(subset="clave", keep="first")
-    return b.sort_values("costo_inaccion", ascending=False).reset_index(drop=True)
+    return _recortar(b)
 
 
 def _duenos() -> list:
@@ -360,16 +531,23 @@ def _tarjeta(r, dec):
     sello = pie = ""
     if dec:
         # Aplazada no lleva el verde de resuelta: no lo está.
-        fondo, letra, marca = (("#FBF0E6", "#8A5A1B", "⏸")
-                               if dec["accion"] == "Aplazada"
+        aplazada = dec["accion"] == "Aplazada"
+        fondo, letra, marca = (("#FBF0E6", "#8A5A1B", "⏸") if aplazada
                                else ("#E3F0E8", "#2f7a48", "✓"))
         sello = (f'<span style="background:{fondo};color:{letra};font-size:10px;'
                  f'font-weight:800;padding:2px 8px;border-radius:3px;'
-                 f'white-space:nowrap">{marca} {dec["accion"].upper()} · '
-                 f'{dec["quien"]}</span>')
-        pie = (f'{dec["accion"]} el {dec["cuando"]} por '
-               f'<b style="color:{TINTA}">{dec["quien"]}</b>'
-               + (f' &nbsp;·&nbsp; {dec["nota"]}' if dec.get("nota") else ""))
+                 f'white-space:nowrap">{marca} {dec["accion"].upper()}'
+                 + ("" if aplazada else f' · {dec["quien"]}') + '</span>')
+        # Aplazar no tiene autor en el registro —nadie se identifica al entrar
+        # al demo— y el nombre que se guardó es el dueño PROPUESTO. Decir
+        # «aplazada por Andrea» sería atribuirle algo que no hizo.
+        pie = (f'Aplazada el {dec["cuando"]} · vuelve a la bandeja · '
+               f'queda propuesta para <b style="color:{TINTA}">{dec["quien"]}</b>'
+               if aplazada else
+               f'{dec["accion"]} el {dec["cuando"]} por '
+               f'<b style="color:{TINTA}">{dec["quien"]}</b>')
+        if dec.get("nota"):
+            pie += f' &nbsp;·&nbsp; {dec["nota"]}'
     else:
         pie = (f'Decide: <b style="color:{TINTA}">{r["decide"]}</b>' +
                (f' &nbsp;·&nbsp; {r["quien"]}' if r["quien"] else ""))
@@ -380,7 +558,7 @@ def _tarjeta(r, dec):
         <div style="flex:1">
           <div style="font-size:9.5px;font-weight:800;letter-spacing:.13em;
                text-transform:uppercase;color:{CLARO}">
-            {ICONO.get(r['tipo'],'•')} &nbsp;{r['tipo']} &nbsp;·&nbsp; {r['origen']}</div>
+            {ICONO.get(r['tipo'],'•')} &nbsp;{r['tipo']} &nbsp;·&nbsp; {r['origen']}{ambito}</div>
           <div style="font-size:15.5px;font-weight:800;color:{TINTA};margin:4px 0 6px">
             {r['titulo']} {sello}</div>
           <div style="font-size:12px;color:{CLARO};margin-bottom:9px">{r['dato']}</div>

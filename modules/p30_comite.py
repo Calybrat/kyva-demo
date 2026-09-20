@@ -18,7 +18,7 @@ Tres reglas de negocio que la pantalla impone y que parecen detalles:
 
 **1. Cerrar exige escribir qué pasó.** No hay casilla de «hecho». Un compromiso
 se cierra con el resultado en texto, porque en enero la pregunta no va a ser si
-se hizo: va a ser si sirvió bajarle el descuento a esa cuenta en septiembre.
+se hizo: va a ser si sirvió bajarle el descuento a esa cuenta en julio.
 
 **2. Cerrar tarde no es cumplir.** Un vencido que se cierra hoy queda como
 «cerrado tarde», en ámbar. Si cerrarlo tarde contara igual que cumplir, el
@@ -52,6 +52,19 @@ ROJO = "#8B1E1E"
 # guarda un registro de cierre en el estado y la pantalla lo superpone. Lo que
 # importa, el resultado escrito, queda persistido igual.
 MARCA_CIERRE = "Cierre de "
+
+# `MESES_ES` de formatters son abreviaturas para ejes de gráfico. Esta pantalla
+# imprime un documento que se reparte en una sala: «se pactó el 28 de jul» se
+# lee a medio terminar al lado del resto del texto.
+MESES = ("enero", "febrero", "marzo", "abril", "mayo", "junio", "julio",
+         "agosto", "septiembre", "octubre", "noviembre", "diciembre")
+
+# Los mismos cortes que usa p28, que es la dueña del fill rate, y utils/gerencia:
+# `quiebres.csv` arranca en marzo de 2026 y una entrega a un bar lleva del orden
+# de once referencias. El comité imprime la cifra de p28, no una propia: si allá
+# se mueven, hay que moverlas aquí o las dos pantallas dejan de cuadrar.
+QUIEBRES_DESDE = "2026-03"
+LINEAS_POR_ENTREGA = 11
 
 
 def _desfase() -> pd.Timedelta:
@@ -175,7 +188,7 @@ def _fila_vencida(r) -> str:
           {r['compromiso']}</div>
         <div style="font-size:11px;color:{CLARO};margin-top:2px">
           {r['area']} &nbsp;·&nbsp; {cuenta}
-          &nbsp;·&nbsp; se pactó el {r['creado']:%d de} {MESES_ES[r['creado'].month - 1]}</div>
+          &nbsp;·&nbsp; se pactó el {r['creado'].day} de {MESES[r['creado'].month - 1]}</div>
       </div>
       <div style="text-align:right;white-space:nowrap">
         <div style="font-size:12.5px;font-weight:800;color:{TINTA}">{r['dueno']}</div>
@@ -195,6 +208,75 @@ def _cerrar(fila, resultado: str) -> None:
     estado.cerrar_compromiso(nid, resultado)
 
 
+def _ventana(meses) -> str:
+    """«marzo a agosto de 2026», a partir de los meses que de verdad hay."""
+    ms = sorted(str(m) for m in meses if str(m))
+    if not ms:
+        return "sin meses con registro"
+    a, b = ms[0], ms[-1]
+    fin = f"{MESES[int(b[5:7]) - 1]} de {b[:4]}"
+    if a == b:
+        return fin
+    ini = MESES[int(a[5:7]) - 1]
+    if a[:4] != b[:4]:
+        ini = f"{ini} de {a[:4]}"
+    return f"{ini} a {fin}"
+
+
+def _cifras() -> dict:
+    """Los números del periodo, con el filtro puesto y con la fórmula de su dueño.
+
+    `gerencia.resumen_gerencia()` es el consolidado de toda la operación y no
+    pasa por `filtros.aplicar`. Imprimirlo tal cual debajo de una lista de
+    compromisos ya filtrada era el peor defecto de esta pantalla: el documento
+    que salía de la sala mezclaba dos alcances en la misma hoja —los
+    compromisos de Medellín encima de la cartera del país entero— y encima
+    afirmaba que no lo hacía. Aquí cada cifra se recalcula con el filtro puesto
+    y con la misma fórmula de la pantalla que la manda, para que el comité y el
+    área discutan el mismo número:
+
+      · cartera vencida, como p26: foto al corte, sin recortar por mes de
+        emisión, porque una factura de abril que sigue abierta es el problema;
+      · venta perdida y fill rate, como p28: el denominador son las líneas
+        despachadas estimadas desde las entregas, nunca la tabla de quiebres;
+      · plata en riesgo de vencerse, como p32: `en_riesgo`, que es la parte del
+        lote que la demanda no alcanza a vender, no el valor del lote entero.
+
+    Dos cifras no se pueden filtrar y se devuelven marcadas: el rebate se pacta
+    por marca —no tiene ciudad ni vendedor— y el lote solo sabe de bodega.
+    """
+    f = filtros.aplicar(gerencia.facturas(), col_mes=None)
+    ab = f[~f["pagada"]]
+    venc = ab[ab["dias_vencida"] > 0]
+
+    q = filtros.aplicar(gerencia.quiebres())
+    q = q[q["mes"] >= QUIEBRES_DESDE]
+    ve = filtros.aplicar(b2b.ventas())
+    ve = ve[ve["mes"] >= QUIEBRES_DESDE]
+    lineas = float(ve["entregas"].sum()) * LINEAS_POR_ENTREGA + len(q)
+
+    lot = gerencia.lotes().copy()
+    # Igual que en p32: el filtro global habla de ciudades y la tabla de lotes
+    # habla de bodegas, que son la misma cosa.
+    lot["ciudad"] = lot["bodega"]
+    lot = filtros.aplicar(lot, col_mes=None)
+
+    return {
+        "vencida": float(venc["saldo"].sum()),
+        "facturas_vencidas": int(len(venc)),
+        "dias_prom": float(venc["dias_vencida"].mean()) if len(venc) else 0.0,
+        "dias_max": int(venc["dias_vencida"].max()) if len(venc) else 0,
+        "venta_perdida": float(q["valor_perdido"].sum()),
+        "fill_rate": (1 - len(q) / lineas) * 100 if lineas else None,
+        "ventana": _ventana(q["mes"].unique()),
+        # Sin filtrar a propósito: `rebates.csv` no tiene ciudad, canal ni
+        # vendedor. Va a la agenda dicho con todas las letras.
+        "rebate_perdido": gerencia.resumen_gerencia()["rebate_perdido"],
+        "en_riesgo": float(lot["en_riesgo"].sum()),
+        "lotes_riesgo": int((lot["en_riesgo_u"] > 0).sum()),
+    }
+
+
 def _orden_del_dia(c: pd.DataFrame, dec: pd.DataFrame, res: dict) -> str:
     """La agenda en markdown, en el orden en que hay que hablar de las cosas.
 
@@ -212,7 +294,9 @@ def _orden_del_dia(c: pd.DataFrame, dec: pd.DataFrame, res: dict) -> str:
     L = [f"# Comité KYVA — {datos.CORTE_TXT}",
          "",
          f"Alcance: {filtros.resumen()}. Preparado desde el panel, no a mano: "
-         f"los números son los mismos que ve cada área en su pantalla.",
+         f"todo lo que sigue está calculado con ese mismo alcance y con la "
+         f"fórmula de la pantalla que manda cada cifra, así que cuadra con lo "
+         f"que ve cada área. Las dos excepciones van marcadas abajo.",
          "",
          f"## 1. Compromisos vencidos ({len(venc)}) — se pasa lista",
          ""]
@@ -239,16 +323,26 @@ def _orden_del_dia(c: pd.DataFrame, dec: pd.DataFrame, res: dict) -> str:
               f"- Si nadie hace nada: {r['si_nadie_hace_nada']}",
               f"- Decide: {r['decide']}", ""]
 
+    # El denominador se dice siempre, y cuando es de uno o dos se dice que lo
+    # es: «100% de cumplimiento» sobre un solo compromiso es una frase que en
+    # un comité se repite en voz alta y no significa nada.
+    aviso_n = (" — son muy pocos: el porcentaje se mueve entero con uno"
+               if 0 < len(juz) <= 2 else "")
+    fill_txt = pct(res["fill_rate"]) if res["fill_rate"] is not None else "—"
     L += ["", "## 3. Los números del periodo", "",
           f"- **Cumplimiento de compromisos:** {pct(cumpl_pct)} "
-          f"({cumplidos} a tiempo de {len(juz)} con plazo cumplido)",
-          f"- **Cartera vencida:** {cop(res['vencida'], 0)} "
-          f"· atraso real promedio {res['atraso_real']:.0f} días",
-          f"- **Venta perdida por quiebre (12 meses):** {cop(res['venta_perdida'], 0)} "
-          f"· fill rate {pct(res['fill_rate'])}",
-          f"- **Rebate que se dejó ir:** {cop(res['rebate_perdido'], 0)} "
-          f"por quedarse corto de tramo",
-          f"- **Inventario en riesgo de vencimiento:** {cop(res['por_vencer'], 0)}",
+          f"({cumplidos} a tiempo de {len(juz)} con plazo cumplido{aviso_n})",
+          f"- **Cartera vencida:** {cop(res['vencida'], 0)} en "
+          f"{res['facturas_vencidas']} facturas · {res['dias_prom']:.0f} días "
+          f"vencidas en promedio, la más vieja {res['dias_max']}",
+          f"- **Venta perdida por quiebre ({res['ventana']}):** "
+          f"{cop(res['venta_perdida'], 0)} · fill rate {fill_txt}",
+          f"- **Rebate que se dejó ir:** {cop(res['rebate_perdido'], 0)} por "
+          f"quedarse corto de tramo _(toda la operación: el rebate se pacta por "
+          f"marca, no tiene ciudad ni vendedor)_",
+          f"- **Plata en riesgo de vencerse:** {cop(res['en_riesgo'], 0)} en "
+          f"{res['lotes_riesgo']} lotes _(por bodega: el lote no sabe de canal "
+          f"ni de vendedor)_",
           ""]
 
     L += [f"## 4. Lo que vence esta semana ({len(semana)})", ""]
@@ -256,7 +350,7 @@ def _orden_del_dia(c: pd.DataFrame, dec: pd.DataFrame, res: dict) -> str:
         L.append("_Nada vence antes del próximo comité._")
     for _, r in semana.iterrows():
         L.append(f"- **{r['dueno']}** — {r['compromiso']} "
-                 f"(vence el {r['vence']:%d} de {MESES_ES[r['vence'].month - 1]})")
+                 f"(vence el {r['vence'].day} de {MESES[r['vence'].month - 1]})")
 
     L += ["", "---",
           f"Generado por el panel KYVA · corte {datos.CORTE_TXT}. "
@@ -274,7 +368,6 @@ def render():
 
     todos = _compromisos()
     c = filtros.aplicar(todos)
-    res = gerencia.resumen_gerencia()
 
     venc = c[c["estado_real"] == "Vencido"].sort_values("dias_retraso", ascending=False)
     juz = c[c["estado_real"].isin(["Cumplido", "Vencido"])]
@@ -310,9 +403,29 @@ def render():
             f"**{venc.iloc[0]['dueno']}**: cuanto más viejo, menos probable es "
             f"que se haya vuelto a mirar y más barato es cerrarlo mal.")
 
+    # El filtro de vendedor de la barra lateral se arma con `cuentas.csv` y aquí
+    # muerde sobre el DUEÑO del compromiso. Hay dueños que no son vendedores de
+    # cuenta —compras, calidad— y por eso no se pueden elegir en el selector:
+    # sin este aviso sus compromisos desaparecen en silencio en cuanto alguien
+    # toca el filtro, y son justamente a los que hay que pasarles lista. Una
+    # lista de la que faltan nombres sin decirlo es peor que no tener filtro.
+    fuera = sorted(set(todos["dueno"].dropna().astype(str)) -
+                   set(c["dueno"].dropna().astype(str)))
+    if filtros.activo() and fuera:
+        om = todos[todos["dueno"].astype(str).isin(fuera)]
+        om_venc = int((om["estado_real"] == "Vencido").sum())
+        st.caption(
+            f"⚠ Este filtro deja fuera **{len(om)} compromisos** "
+            f"({om_venc} vencidos, {cop(float(om['valor'].sum()), 0)} atados) de "
+            f"{', '.join(fuera)}. El selector de vendedor solo ofrece a los "
+            f"vendedores de cuenta, así que a un dueño de compras o de calidad "
+            f"no se le puede pasar lista por separado desde ahí: para verlos hay "
+            f"que quitar el filtro.")
+
     st.markdown(espacio(16), unsafe_allow_html=True)
 
     # ── Las cuatro cifras del comité ────────────────────────────────────────
+    plata_venc = float(venc["valor"].sum())
     k = st.columns(4, gap="small")
     k[0].markdown(kpi(
         "Vencidos sin cerrar", num(len(venc)),
@@ -321,19 +434,34 @@ def render():
         unsafe_allow_html=True)
     k[1].markdown(kpi(
         "Cumplimiento del periodo", pct(cumpl_pct),
-        f"{a_tiempo} a tiempo · {tarde} cerrados tarde", cumpl_pct >= 70, "✓",
+        # El denominador va en la tarjeta, no solo en la de al lado: un 100% de
+        # uno sobre uno —pasa con el filtro puesto en una persona— y un 100% de
+        # doce se leen igual si nadie dice cuántos son. Y «cerrados tarde» solo
+        # se nombra cuando hay alguno: un cero mudo en la tarjeta que abre el
+        # comité gasta una línea para no decir nada.
+        f"{a_tiempo} a tiempo de {len(juz)}" +
+        (f" · {tarde} cerrados tarde" if tarde else ""),
+        cumpl_pct >= 70, "✓",
         "Cerrados dentro del plazo sobre los que ya se vencieron.",
-        "Un comité que funciona no baja del 70%"), unsafe_allow_html=True)
+        "El porcentaje es sobre muy pocos compromisos"
+        if 0 < len(juz) <= 2 else "Un comité que funciona no baja del 70%"),
+        unsafe_allow_html=True)
     k[2].markdown(kpi(
-        "Plata comprometida vencida", cop(float(venc["valor"].sum()), 0),
-        "esperando a que alguien la ejecute", False, "💰",
+        "Plata comprometida vencida", cop(plata_venc, 0),
+        "esperando a que alguien la ejecute" if plata_venc > 0
+        else "ningún vencido tiene plata atada", plata_venc == 0, "💰",
         "Cartera por cobrar, descuentos por renegociar y cuotas por cerrar que "
         "ya tenían dueño y fecha."), unsafe_allow_html=True)
+    # Un cero aquí NO es una buena noticia y pintarlo en verde era el semáforo
+    # al revés: significa que la reunión anterior terminó sin que nadie se
+    # comprometiera a nada antes del próximo comité, que es el peor resultado
+    # posible de un comité. Lo sano es tener cosas en vuelo.
     k[3].markdown(kpi(
         "Vencen esta semana", num(len(semana)),
-        "antes del próximo comité", len(semana) == 0, "📅",
-        "Si se miran hoy todavía se pueden cumplir; el lunes ya no."),
-        unsafe_allow_html=True)
+        "todavía se pueden cumplir" if not semana.empty
+        else "nadie pactó nada para esta semana", not semana.empty, "📅",
+        "Compromisos con fecha antes del próximo comité. Si se miran hoy "
+        "todavía se pueden cumplir; el lunes ya no."), unsafe_allow_html=True)
 
     st.markdown(espacio(18), unsafe_allow_html=True)
 
@@ -355,6 +483,13 @@ def render():
         fig = go.Figure()
         for col, color in (("A tiempo", VERDE), ("Cerrado tarde", AMBAR),
                            ("Vencido", ROJO)):
+            # Una serie que no tiene ninguna barra no dibuja nada y sí gasta una
+            # entrada de leyenda. «Cerrado tarde» está en cero hasta que alguien
+            # cierre un vencido —en vivo, durante la demostración— y hasta
+            # entonces la leyenda prometía un color que no aparece por ninguna
+            # parte. El concepto se sigue explicando en el texto de abajo.
+            if int(g[col].sum()) == 0:
+                continue
             fig.add_trace(go.Bar(
                 y=g.index, x=g[col], orientation="h", name=col,
                 marker_color=color,
@@ -370,13 +505,22 @@ def render():
         f.update_layout(hovermode="closest")
         st.plotly_chart(f, use_container_width=True)
 
+        # La comparación dice los dos denominadores en vez de afirmar que son
+        # parecidos sin haberlo comprobado: con un filtro puesto pueden ser uno
+        # contra cuatro, y entonces la frase compara un porcentaje con una
+        # anécdota.
         peor, mejor = g.index[0], g.index[-1]
         comparacion = (
-            f"**{mejor}** va en {pct(g.loc[mejor, 'pct'])} y **{peor}** en "
-            f"{pct(g.loc[peor, 'pct'])} sobre un número parecido de compromisos."
+            f"**{mejor}** va en {pct(g.loc[mejor, 'pct'])} sobre "
+            f"{int(g.loc[mejor, 'total'])} compromisos y **{peor}** en "
+            f"{pct(g.loc[peor, 'pct'])} sobre {int(g.loc[peor, 'total'])}."
             if peor != mejor else
             f"**{mejor}** va en {pct(g.loc[mejor, 'pct'])} sobre "
             f"{int(g.loc[mejor, 'total'])} compromisos con el plazo cumplido.")
+        if int(g["total"].min()) <= 2:
+            comparacion += (" Hay personas con uno o dos compromisos juzgados: "
+                            "ahí el porcentaje no distingue a quien cumple de "
+                            "quien tuvo suerte.")
         st.caption(
             f"El porcentaje es lo cerrado **dentro del plazo**. Cerrar tarde "
             f"aparece aparte en ámbar a propósito: si contara como cumplir, el "

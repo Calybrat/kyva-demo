@@ -26,49 +26,56 @@ st.markdown(CSS + HEADER_CSS + CSS_PRODUCTO, unsafe_allow_html=True)
 # panel gira alrededor de una sola pregunta: ¿crecer nos está dejando plata?
 GRUPOS = [
     ("El lunes a las 7", [
-        ("📋  Centro de decisiones", "p20_decisiones"),
-        ("🏠  Tablero Ejecutivo", "p01_tablero"),
+        ("Centro de decisiones", "p20_decisiones"),
+        ("Comité del lunes", "p30_comite"),
+        ("Tablero Ejecutivo", "p01_tablero"),
     ]),
-    ("¿Crecer nos deja plata?", [
-        ("💸  Dónde se va el margen", "p02_margen"),
-        ("🧭  Los cuatro negocios", "p03_canales"),
-        ("🏦  Caja y capital de trabajo", "p04_caja"),
+    ("¿Dónde está la caja?", [
+        ("Cartera", "p26_cartera"),
+        ("Caja y capital de trabajo", "p04_caja"),
+        ("Presupuesto y brecha", "p29_presupuesto"),
     ]),
     ("¿Quién nos deja plata?", [
-        ("🏪  Rentabilidad por cuenta", "p21_cuentas"),
-        ("👥  Equipo comercial", "p22_equipo"),
-        ("🚚  Rutas y costo de servir", "p23_rutas"),
+        ("Rentabilidad por cuenta", "p21_cuentas"),
+        ("Dónde se va el margen", "p02_margen"),
+        ("Los cuatro negocios", "p03_canales"),
+        ("Equipo comercial", "p22_equipo"),
     ]),
-    ("¿Quién compra y vuelve?", [
-        ("🔁  Recompra y cohortes", "p05_recompra"),
-        ("🥂  Membresía Elite", "p06_elite"),
-        ("🤝  Alianzas B2B2C", "p07_alianzas"),
-        ("⭕  Mi Círculo", "p08_circulo"),
+    ("¿Estamos cumpliendo?", [
+        ("Marcas y rebate", "p27_marcas"),
+        ("Lo que no se vendió", "p28_servicio"),
+        ("Rutas y costo de servir", "p23_rutas"),
+        ("Pide AM, recibe PM", "p12_entregas"),
     ]),
-    ("¿Qué vendemos y a qué precio?", [
-        ("🍾  Surtido y rotación", "p09_surtido"),
-        ("🏷️  Precio vs. competencia", "p10_precios"),
-        ("🚚  Marcas en distribución", "p11_distribucion"),
+    ("¿Qué hay que comprar?", [
+        ("Reposición y compras", "p17_reposicion"),
+        ("Vencimientos", "p32_vencimientos"),
+        ("Surtido y rotación", "p09_surtido"),
     ]),
-    ("¿Llegamos a tiempo?", [
-        ("⏱️  Pide AM, recibe PM", "p12_entregas"),
+    ("¿Qué pasa en el punto?", [
+        ("Lo que pasa dentro del bar", "p31_punto_venta"),
+        ("Precio vs. competencia", "p10_precios"),
+        ("Marcas en distribución", "p11_distribucion"),
     ]),
     ("¿Qué viene?", [
-        ("🎄  Temporada de fin de año", "p13_temporada"),
-        ("📈  Proyección de cierre", "p18_proyeccion"),
-        ("📦  Reposición y compras", "p17_reposicion"),
-    ]),
-    ("¿Qué pasa si…?", [
-        ("🎛️  Simulador", "p25_simulador"),
+        ("Proyección de cierre", "p18_proyeccion"),
+        ("Temporada de fin de año", "p13_temporada"),
+        ("Simulador", "p25_simulador"),
     ]),
     ("¿Qué se hace solo?", [
-        ("⚙️  Automatizaciones", "p16_automatizaciones"),
-        ("🔔  Alertas", "p19_alertas"),
+        ("Automatizaciones", "p16_automatizaciones"),
+        ("Alertas", "p19_alertas"),
+    ]),
+    ("El canal directo", [
+        ("Recompra y cohortes", "p05_recompra"),
+        ("Membresía Elite", "p06_elite"),
+        ("Alianzas B2B2C", "p07_alianzas"),
+        ("Mi Círculo", "p08_circulo"),
     ]),
     ("Dirección", [
-        ("💬  Hilos del equipo", "p24_hilos"),
-        ("📄  Reportes Automáticos", "p14_reportes"),
-        ("🤖  Agente IA KYVA", "p15_agente"),
+        ("Hilos del equipo", "p24_hilos"),
+        ("Reportes Automáticos", "p14_reportes"),
+        ("Agente IA KYVA", "p15_agente"),
     ]),
 ]
 PAGES = {label: mod for _, items in GRUPOS for label, mod in items}

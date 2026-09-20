@@ -208,6 +208,7 @@ def render():
     base_dev = float(vd["bruto"].sum())
     dev_pct = dev_total / base_dev * 100 if base_dev else 0.0
     dev_cob = dev_clas / dev_total * 100 if dev_total else 0.0
+    ventana_dev = _ventana(vd["mes"].unique()) if not vd.empty else ventana_txt
 
     # ── El costo oculto ─────────────────────────────────────────────────────
     # Se mide por CATEGORÍA, no por SKU, y es deliberado: el mesero no pide
@@ -338,10 +339,18 @@ def render():
             name="Venta perdida"))
         fig2.update_yaxes(title="Venta perdida del mes")
         st.plotly_chart(light(fig2, 330, moneda=True), use_container_width=True)
+        # La categoría sale del dato, no de la memoria: decir «casi siempre
+        # whisky» cuando el whisky es el 48% es la clase de frase redonda que
+        # el que conoce su negocio desarma en un segundo.
+        cat_v = q.groupby("categoria")["valor_perdido"].sum().sort_values(
+            ascending=False)
         st.caption(
-            "Un mes con buen fill rate y mucha plata perdida significa que "
-            "fallaron **pocas líneas pero grandes**: casi siempre whisky de "
-            "cuenta corporativa, que es el pedido que menos se puede fallar.")
+            f"Un mes con buen fill rate y mucha plata perdida significa que "
+            f"fallaron **pocas líneas pero grandes**. La categoría que más pesa "
+            f"es **{cat_v.index[0].lower()}**, con "
+            f"{pct(cat_v.iloc[0] / perdido * 100, 0)} del valor perdido — es la "
+            f"primera, no es todo: el resto se reparte entre otras "
+            f"{len(cat_v) - 1} categorías.")
 
     st.markdown(espacio(16), unsafe_allow_html=True)
 
@@ -498,27 +507,44 @@ def render():
                               range=[0, float(resp["valor"].max()) * 1.45])
             st.plotly_chart(light(fig6, 320), use_container_width=True)
 
-        peor_resp = d.groupby("responsable")["valor"].sum().idxmax()
-        peor_val = float(d.groupby("responsable")["valor"].sum().max())
-        averia = float(d.loc[d["motivo"] == "Avería en transporte", "valor"].sum())
-        vencido = float(d.loc[d["motivo"] == "Producto vencido", "valor"].sum())
+        # Los motivos se enumeran desde el DATO y ordenados por plata. Antes la
+        # lista estaba escrita a mano, decía «cuatro problemas» y se saltaba
+        # justo «no rotó en el punto» —que es el más caro de Comercial—, así
+        # que el mapa de calor de al lado pintaba cinco filas y el texto cuatro.
+        por_motivo = d.groupby("motivo")["valor"].sum().sort_values(
+            ascending=False)
+        lista = "<br>".join(
+            f"<b>{mo}</b> ({cop(v, 0)} · dueño: "
+            f"<b>{DUENO_DEVOLUCION.get(mo, ('Sin asignar', ''))[0]}</b>). "
+            f"{DUENO_DEVOLUCION.get(mo, ('', 'Sin dueño asignado'))[1]}."
+            for mo, v in por_motivo.items())
+
+        por_resp = d.groupby("responsable")["valor"].sum().sort_values(
+            ascending=False)
+        peor_resp, peor_val = por_resp.index[0], float(por_resp.iloc[0])
+        # Y el área que más devuelve se abre por dentro. «Comercial devuelve
+        # $4,6 M, se corrige al tomar el pedido» era falso: más de la mitad de
+        # esa plata no es un pedido mal tomado, es mercancía sobrecolocada.
+        dentro = d[d["responsable"] == peor_resp].groupby(
+            "motivo")["valor"].sum().sort_values(ascending=False)
+        desglose = " · ".join(f"{cop(v, 0)} de «{mo.lower()}»"
+                              for mo, v in dentro.items())
         st.markdown(panel(
             "Por qué el total de devoluciones no sirve para nada",
-            f"En el ERP las {num(len(d))} devoluciones del periodo son una sola "
-            f"línea: {cop(dev_valor, 0)} en notas crédito. Abiertas, son cuatro "
-            f"problemas con cuatro dueños y cuatro soluciones distintas:<br><br>"
-            f"<b>Avería en transporte</b> ({cop(averia, 0)}) se arregla con "
-            f"estiba y ruta, no hablando con el cliente. "
-            f"<b>Producto vencido</b> ({cop(vencido, 0)}) no es una devolución: "
-            f"es un error de compra que se descubrió seis meses tarde en la "
-            f"nevera del bar. "
-            f"<b>Pedido equivocado</b> es del vendedor y se corrige en el "
-            f"momento de tomar el pedido. "
-            f"<b>Diferencia de precio</b> ni siquiera es un problema de "
-            f"producto: es lista de precios contra lo que el vendedor prometió."
-            f"<br><br>Hoy el área que más devuelve es <b>{peor_resp}</b>, con "
-            f"{cop(peor_val, 0)}. Con el total agregado, esa frase no se puede "
-            f"decir — y sin esa frase nadie cambia nada.",
+            f"En el ERP las devoluciones de {ventana_dev} son una sola línea: "
+            f"{cop(dev_total, 0)} en notas crédito. De esa plata, "
+            f"{cop(dev_clas, 0)} ({pct(dev_cob, 0)}) llega con motivo y "
+            f"responsable anotados —las {num(len(d))} devoluciones de abajo—; "
+            f"el resto entra como nota crédito sin causa y por eso no aparece "
+            f"en el mapa. <b>Ese hueco ya es un hallazgo</b>: "
+            f"{pct(100 - dev_cob, 0)} de lo que vuelve no tiene a quién "
+            f"devolvérselo.<br><br>"
+            f"Lo que sí está clasificado son {len(por_motivo)} problemas con "
+            f"dueños y soluciones distintas:<br><br>{lista}<br><br>"
+            f"Hoy el área que más devuelve es <b>{peor_resp}</b>, con "
+            f"{cop(peor_val, 0)} — y por dentro son {len(dentro)}: {desglose}. "
+            f"Con el total agregado no se puede decir ni la primera frase ni "
+            f"la segunda, y es la segunda la que dice qué hacer.",
             "↩️", "alerta"), unsafe_allow_html=True)
 
     st.markdown(espacio(16), unsafe_allow_html=True)
@@ -533,14 +559,17 @@ def render():
         "próxima vez le pide el tequila a otro, y ese proveedor ya entró por la "
         "puerta. El daño no es el pedido fallido: es la venta anual de esa "
         "categoría en esa cuenta.<br><br>"
-        "Se mide por <b>categoría y no por referencia</b> a propósito: al bar le "
-        "da igual el SKU exacto: lo que aprende es que a KYVA no le pida "
-        "tequila. La exposición se valoriza con lo que esa cuenta <b>pidió</b> "
-        "—no lo que se le vendió— en los meses con registro, llevado a doce, y "
+        "Se mide por <b>categoría y no por referencia</b> a propósito, porque "
+        "al bar le da igual el SKU exacto. La exposición se valoriza con lo que "
+        "esa cuenta <b>pidió</b> —no lo que se le vendió— en los "
+        f"{meses_ventana} mes{'es' if meses_ventana != 1 else ''} con registro "
+        f"({ventana_txt}), llevado a doce, y "
         "se topa con la venta anual real de la cuenta: nadie puede dejar de "
         "comprar más de lo que compra.<br><br>"
         "<b>El porcentaje de abandono es un supuesto, no un dato.</b> Muévalo y "
-        "vea el rango. Es la única cifra de este panel que no sale del ERP.",
+        "vea el rango. Es la única cifra de este panel que no sale del ERP — y "
+        "por eso el resultado es una <b>exposición a doce meses</b>, que no se "
+        "suma con la venta perdida del periodo: son unidades distintas.",
         "🕳️", "azul"), unsafe_allow_html=True)
 
     st.slider("Probabilidad de que la cuenta deje de pedir esa categoría (%)",
@@ -562,6 +591,20 @@ def render():
         })
         st.dataframe(tr, hide_index=True, width="stretch")
 
+        # Con pocos pares el patrón no existe todavía, y el texto de abajo está
+        # escrito en tono rotundo. En trimestre son diez casos y el más caro
+        # tiene exactamente dos fallas: decir «deja de pedirla» sobre n=2 con el
+        # mismo aplomo que sobre veintiséis es lo que quema la credibilidad.
+        pocos = len(riesgo) < 8
+        if pocos:
+            st.caption(
+                f"⚠ Son **{len(riesgo)} pares cuenta-categoría** en esta "
+                f"ventana de {meses_ventana} mes"
+                f"{'es' if meses_ventana != 1 else ''} — muy pocos para leerlo "
+                f"como patrón. Sirve para revisar estos casos uno por uno, no "
+                f"para sacar una conclusión sobre la operación. Amplíe el "
+                f"periodo para ver si se repite.")
+
         peor = r.iloc[0]
         st.markdown(espacio(6), unsafe_allow_html=True)
         cols = st.columns([2, 3], gap="large")
@@ -569,10 +612,14 @@ def render():
             st.markdown(_tabla_html([
                 ("Cuentas con la misma falla dos veces", num(riesgo["cuenta_id"].nunique())),
                 ("Pares cuenta-categoría en riesgo", num(len(riesgo))),
-                ("Venta anual expuesta", cop(expuesto, 0)),
-                (f"En riesgo con abandono del {prob}%", cop(costo_oculto, 0)),
-                ("Venta ya perdida en el periodo", cop(perdido, 0)),
-                ("Relación costo oculto / venta perdida",
+                ("Venta expuesta · 12 meses", cop(expuesto, 0)),
+                (f"En riesgo con abandono del {prob}% · 12 meses",
+                 cop(costo_oculto, 0)),
+                (f"Venta ya perdida · {ventana_txt}", cop(perdido, 0)),
+                # La relación se dice en su unidad: es una exposición a doce
+                # meses contra un flujo de la ventana. Sin el «anualizada» al
+                # lado, el «×» se lee como si fueran dos cifras comparables.
+                ("Exposición anualizada / venta perdida de la ventana",
                  f"{costo_oculto / perdido:.1f}×" if perdido else "—"),
             ]), unsafe_allow_html=True)
         with cols[1]:
@@ -589,30 +636,67 @@ def render():
                 f"La acción no es un descuento: es que el vendedor llame antes "
                 f"de que el cliente se dé cuenta, y que esa categoría entre en "
                 f"stock de seguridad para esa cuenta. Cuesta una llamada y unas "
-                f"cajas quietas — contra {cop(peor['expuesto'] * prob / 100, 0)}.",
+                f"cajas quietas — contra {cop(peor['expuesto'] * prob / 100, 0)}."
+                + (f"<br><br>Dicho con cuidado: son <b>{int(peor['fallas'])} "
+                   f"fallas</b> en {meses_ventana} mes"
+                   f"{'es' if meses_ventana != 1 else ''}. Alcanza para hacer "
+                   f"la llamada, no para afirmar que la cuenta ya se está "
+                   f"yendo." if pocos or int(peor["fallas"]) <= 2 else ""),
                 "📞", "alerta"), unsafe_allow_html=True)
 
         # El juicio del fill rate se escribe aquí y no en una plantilla fija:
         # decir «dentro de la franja sana» cuando el filtro dejó la vista en 91%
         # es exactamente el tipo de frase que hace que nadie vuelva a creerle
         # al panel.
+        #
+        # Y la rama de arriba de 98 ya no acusa: el KPI de esta misma pantalla
+        # pinta verde desde 95, así que decir «sobrestock» aquí contradecía al
+        # KPI en las cuatro ventanas a la vez. Arriba de la franja el problema
+        # existe, pero es de bodega y no de servicio, y eso es lo que dice.
         juicio = ("por debajo de la franja sana, que es lo que hace que un bar "
                   "llame a otro proveedor" if fill < FILL_SANO[0] else
                   "dentro de la franja sana" if fill <= FILL_SANO[1] else
-                  "por encima de la franja sana, que casi siempre se paga con "
-                  "sobrestock en bodega")
+                  "en el techo de la franja de referencia. El KPI sigue en "
+                  "verde y está bien que siga: arriba de 98% el problema deja "
+                  "de ser el cliente y pasa a ser el inventario, y eso se mira "
+                  "contra bodega, no contra servicio")
+
+        # La prosa de abajo afirmaba que «lo que falla son los pedidos grandes
+        # de whisky». La mitad era cierta y la mitad no: las líneas fallidas SÍ
+        # son sistemáticamente grandes, pero no son unas pocas ni son casi
+        # siempre whisky. Las dos cifras salen del dato y se dicen con nombre.
+        med_fallida = float(q["valor_perdido"].median())
+        linea_servida = (neto_ventana / float(lineas_mes.sum())
+                         if lineas_mes.sum() else 0.0)
+        vals = q["valor_perdido"].sort_values(ascending=False)
+        n_mitad = (int((vals.cumsum() >= vals.sum() * 0.5).to_numpy().argmax()) + 1
+                   if vals.sum() else 0)
         st.markdown(panel(
             "La cuenta completa del servicio",
-            f"El periodo cierra con <b>{pct(fill)}</b> de fill rate: {juicio}, "
-            f"y aun así <b>{cop(perdido, 0)}</b> de venta que el "
-            f"cliente ya había decidido comprar y no se facturó. Ese es el punto "
-            f"incómodo de esta métrica — <b>un fill rate respetable convive con "
-            f"mucha plata perdida</b>, porque lo que falla no son las líneas "
-            f"pequeñas: son los pedidos grandes de whisky.<br><br>"
-            f"Sumado: {cop(perdido, 0)} de venta perdida directa, "
-            f"{cop(dev_valor, 0)} de devoluciones y {cop(costo_oculto, 0)} de "
-            f"cuentas que están aprendiendo a no pedirnos una categoría. "
-            f"<b>{cop(perdido + dev_valor + costo_oculto, 0)}</b> que no están en "
-            f"ningún informe de ventas porque ningún informe de ventas mide lo "
-            f"que no se vendió.",
+            f"La ventana ({ventana_txt}) cierra con <b>{pct(fill)}</b> de fill "
+            f"rate <b>medido por líneas</b>: {juicio}. Medido <b>en pesos</b> "
+            f"es <b>{pct(fill_valor)}</b>: {cop(perdido, 0)} de venta que el "
+            f"cliente ya había decidido comprar, sobre {cop(pedido_total, 0)} "
+            f"de venta pedida.<br><br>"
+            f"Esa distancia de <b>{num(fill - fill_valor, 1)} puntos</b> entre "
+            f"las dos cifras es el punto incómodo de la métrica, y no es "
+            f"redondeo: la línea fallida <b>mediana</b> vale "
+            f"{cop(med_fallida, 0)} contra {cop(linea_servida, 0)} de la línea "
+            f"servida promedio. <b>No fallan las líneas pequeñas: fallan las "
+            f"grandes</b> — y no es un puñado de casos que se puedan explicar "
+            f"aparte: hacen falta {n_mitad} líneas distintas para juntar la "
+            f"mitad del valor perdido, de {num(len(q))} en total. Por eso el "
+            f"98% no tranquiliza.<br><br>"
+            f"<b>Lo ya perdido en la ventana:</b> {cop(perdido, 0)} de venta "
+            f"que no salió, más {cop(dev_total, 0)} de producto que volvió, son "
+            f"<b>{cop(perdido + dev_total, 0)}</b>. Las dos cifras salen del "
+            f"ERP y son del mismo periodo.<br><br>"
+            f"<b>Aparte, y en otra unidad:</b> {cop(costo_oculto, 0)} de venta "
+            f"anual expuesta en cuentas que están aprendiendo a no pedirnos una "
+            f"categoría. <b>No se suma a lo de arriba</b> —aquello es un flujo "
+            f"de {meses_ventana} mes{'es' if meses_ventana != 1 else ''} que ya "
+            f"ocurrió, y esto es una exposición a doce meses que todavía no, y "
+            f"que además depende de un porcentaje que puso usted—. Pero tampoco "
+            f"está en ningún informe de ventas, porque ningún informe de ventas "
+            f"mide lo que no se vendió.",
             "🧾", "alerta"), unsafe_allow_html=True)

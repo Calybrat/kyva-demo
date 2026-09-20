@@ -173,13 +173,23 @@ def light(fig: go.Figure, height: int = 340, title: str = "", moneda: bool = Fal
     mil veces más de lo que es.
     """
     if moneda:
+        # El eje del VALOR no siempre es el Y. En una barra horizontal el Y son
+        # las categorías, y aplicarle el formato de moneda produce etiquetas
+        # como «$Julián Mora M». Salió publicado y lo cazó una auditoría de
+        # diseño: un error así hace que el lector deje de creerle a las cifras
+        # de al lado, que es un daño mucho mayor que el del propio eje.
+        horizontal = any(getattr(tr, "orientation", None) == "h" for tr in fig.data)
+        eje = "x" if horizontal else "y"
         for tr in fig.data:
-            if getattr(tr, "orientation", None) == "h" or getattr(tr, "yaxis", None) not in (None, "y"):
+            if getattr(tr, f"{eje}axis", None) not in (None, eje):
                 continue
-            if getattr(tr, "y", None) is not None:
-                tr.y = [v / 1e6 if v is not None else None for v in tr.y]
-                tr.hovertemplate = "$%{y:,.1f} M<extra>" + (tr.name or "") + "</extra>"
-        fig.update_layout(yaxis=dict(tickprefix="$", ticksuffix=" M", tickformat=",.0f"))
+            vals = getattr(tr, eje, None)
+            if vals is not None:
+                setattr(tr, eje, [v / 1e6 if v is not None else None for v in vals])
+                tr.hovertemplate = ("$%{" + eje + ":,.1f} M<extra>"
+                                    + (tr.name or "") + "</extra>")
+        fig.update_layout(**{f"{eje}axis": dict(tickprefix="$", ticksuffix=" M",
+                                                tickformat=",.0f")})
     is_pie = any(getattr(tr, "type", None) == "pie" for tr in fig.data)
     n_cat = 0
     n_entries = 0
@@ -477,9 +487,15 @@ CSS_PRODUCTO = f"""
 /* Las cuatro tarjetas de KPI quedaban con el borde inferior desparejo cuando
    los textos de ayuda tenían largos distintos. `height:100%` en la tarjeta no
    basta: los hijos de stColumn no se estiran si no se les dice. */
-[data-testid="stHorizontalBlock"] {{ align-items:stretch; }}
-[data-testid="stColumn"] > div,
-[data-testid="stColumn"] [data-testid="stVerticalBlock"] {{ height:100%; }}
+[data-testid="stHorizontalBlock"] {{ align-items:stretch !important; }}
+[data-testid="stColumn"] {{ display:flex !important; }}
+[data-testid="stColumn"] > div {{ width:100%; display:flex; flex-direction:column; }}
+[data-testid="stColumn"] [data-testid="stVerticalBlock"],
+[data-testid="stColumn"] [data-testid="stElementContainer"],
+[data-testid="stColumn"] [data-testid="stMarkdown"],
+[data-testid="stColumn"] [data-testid="stMarkdownContainer"] {{
+  height:100%; display:flex; flex-direction:column;
+}}
 
 /* El foco de teclado era el azul por defecto de Streamlit, que no es de la
    marca. Y nunca outline:none — deja la app inutilizable sin ratón. */
@@ -569,6 +585,10 @@ label, .stSelectbox label, .stSlider label {{
   box-shadow:0 2px 6px rgba(14,17,58,.07), 0 1px 2px rgba(14,17,58,.04);
   border-color:var(--linea-fuerte); transform:translateY(-1px);
 }}
+
+/* Ancho de línea. Un párrafo de 110 caracteres no se lee dos veces. */
+[data-testid="stMain"] [data-testid="stMarkdownContainer"] > p,
+[data-testid="stMain"] [data-testid="stCaptionContainer"] p {{ max-width:70ch; }}
 
 /* Encabezado de sección: versalitas con hairline, no un <b> suelto. */
 .ky-sub {{

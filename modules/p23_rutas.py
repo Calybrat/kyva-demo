@@ -91,8 +91,15 @@ def render():
             continue
         fig.add_trace(go.Scatter(
             x=d["cuentas"], y=d["costo_entrega"], mode="markers+text",
-            name=ciudad, text=d["zona"], textposition="top center",
-            textfont=dict(size=9, color=CLARO),
+            name=ciudad,
+            # Solo se rotulan los extremos. Con todas las zonas rotuladas, tres
+            # de ellas se pisaban y quedaban ilegibles: texto encima de texto
+            # significa que nadie miró la pantalla terminada.
+            text=[z if (c == d["costo_entrega"].max() or c == d["costo_entrega"].min()
+                        or n == d["cuentas"].max()) else ""
+                  for z, c, n in zip(d["zona"], d["costo_entrega"], d["cuentas"])],
+            textposition="top center",
+            textfont=dict(size=9.5, color=TINTA),
             marker=dict(size=np.clip(d["entregas"] / 2.2, 10, 40), color=color,
                         opacity=.75, line=dict(width=1, color="#fff")),
             customdata=np.stack([d["entregas"], d["ticket"], d["carga_pct"]], -1),

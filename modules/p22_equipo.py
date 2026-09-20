@@ -55,8 +55,12 @@ def render():
     g["ticket"] = g["neto"] / g["entregas"].clip(lower=1)
 
     por_venta = g.sort_values("neto", ascending=False)["vendedor"].tolist()
-    por_margen = g.sort_values("servido", ascending=False)["vendedor"].tolist()
-    invertidos = [x for x in por_venta if por_venta.index(x) != por_margen.index(x)]
+    por_tasa = g.sort_values("servido_pct", ascending=False)["vendedor"].tolist()
+    invertidos = [x for x in por_venta if por_venta.index(x) != por_tasa.index(x)]
+    # Cuánto costaría el descuento extra del que más regala, medido contra el
+    # que menos: es el número que vuelve concreta la conversación.
+    mas, menos = g.nlargest(1, "desc_pct").iloc[0], g.nsmallest(1, "desc_pct").iloc[0]
+    costo_descuento = (mas["desc_pct"] - menos["desc_pct"]) / 100 * mas["bruto"]
 
     k = st.columns(4, gap="small")
     k[0].markdown(kpi(
@@ -75,28 +79,52 @@ def render():
         g["neto"].sum() / (g["cuota_mes"].sum() * 3) >= 1, "🎯",
         "Cuota medida en venta neta, como está hoy."), unsafe_allow_html=True)
     k[3].markdown(kpi(
-        "Cambian de puesto", num(len(invertidos)),
-        "al ordenar por margen en vez de venta", len(invertidos) == 0, "🔄",
-        "Los que el informe de ventas premia o castiga al revés.",
-        "Es el costo del incentivo, medido"), unsafe_allow_html=True)
+        "Lo que cuesta el descuento extra", cop(costo_descuento, 0),
+        f"{mas['vendedor'].split()[0]} regala {pct(mas['desc_pct'] - menos['desc_pct'])} "
+        f"más que {menos['vendedor'].split()[0]}", False, "",
+        "Sobre su propia venta del trimestre. No es un reproche: es el precio "
+        "de un incentivo que premia facturar.",
+        f"{len(invertidos)} vendedores cambian de puesto al ordenar por tasa "
+        f"de margen"), unsafe_allow_html=True)
 
     st.markdown(espacio(18), unsafe_allow_html=True)
 
     # ── El vuelco del ranking ───────────────────────────────────────────────
-    st.markdown('<div class="ky-sub">El ranking se voltea</div>', unsafe_allow_html=True)
+    st.markdown('<div class="ky-sub">El que más vende no es el que mejor vende</div>',
+                unsafe_allow_html=True)
     izq = g.sort_values("neto", ascending=True)
     der = g.sort_values("servido", ascending=True)
 
+    # Antes esto eran dos barras en la misma escala, y como el margen servido es
+    # una fracción de la venta, la segunda barra no se veía. El parche fue
+    # multiplicarla por cuatro y CONFESARLO en la leyenda: «Margen servido (×4
+    # para verlo)». Una auditoría de diseño lo señaló y tenía razón — ningún
+    # producto serio expone un factor de deformación en la leyenda, porque le
+    # está diciendo al lector que el gráfico miente un poco.
+    #
+    # La solución no es un eje secundario: es cambiar la pregunta. Lo que
+    # importa no son dos magnitudes sino el CONTRASTE entre posición por venta
+    # y posición por margen, y eso se ve mejor con la venta como barra y el
+    # margen como porcentaje sobre ella.
+    orden = g.sort_values("servido", ascending=True)
     fig = go.Figure()
-    fig.add_trace(go.Bar(y=izq["vendedor"], x=izq["neto"], orientation="h",
-                         name="Venta neta", marker_color=PALIDO,
-                         hovertemplate="%{y}<br>Venta: %{x:,.0f}<extra></extra>"))
-    fig.add_trace(go.Bar(y=der["vendedor"], x=der["servido"] * 4, orientation="h",
-                         name="Margen servido (×4 para verlo)",
-                         marker_color=PRIMARIO,
-                         customdata=der["servido"],
-                         hovertemplate="%{y}<br>Margen servido: %{customdata:,.0f}<extra></extra>"))
-    fig.update_layout(barmode="group")
+    fig.add_trace(go.Bar(
+        y=orden["vendedor"], x=orden["neto"], orientation="h",
+        name="Venta neta", marker_color=PALIDO,
+        text=[f"{v:.1f}% margen" for v in orden["servido_pct"]],
+        textposition="inside", insidetextanchor="end",
+        textfont=dict(size=11, color=TINTA),
+        customdata=np.stack([orden["servido"], orden["desc_pct"]], -1),
+        hovertemplate="<b>%{y}</b><br>Venta: %{x:,.0f}"
+                      "<br>Margen servido: %{customdata[0]:,.0f}"
+                      "<br>Descuento: %{customdata[1]:.1f}%<extra></extra>"))
+    fig.add_trace(go.Bar(
+        y=orden["vendedor"], x=orden["servido"], orientation="h",
+        name="De eso, lo que queda", marker_color=PRIMARIO,
+        hovertemplate="%{y}<br>Queda: %{x:,.0f}<extra></extra>"))
+    # Superpuestas, no agrupadas: la barra oscura DENTRO de la clara muestra
+    # qué proporción de lo que vendió sobrevive al descuento y al reparto.
+    fig.update_layout(barmode="overlay")
     st.plotly_chart(light(fig, 300, moneda=True), width="stretch", theme=None, config=PLOTLY_CONFIG)
 
     top_venta = g.nlargest(1, "neto").iloc[0]
@@ -121,7 +149,7 @@ def render():
     st.markdown('<div class="ky-sub">Qué pasa si se cambia la base de la comisión</div>',
                 unsafe_allow_html=True)
     c = st.columns([1, 1, 2])
-    esquema = c[0].selectbox("Esquema", list(ESQUEMAS), key="eq_esq")
+    esquema = c[0].selectbox("Esquema", list(ESQUEMAS), index=1, key="eq_esq")
     cfg = ESQUEMAS[esquema]
     tasa = c[1].slider("Tasa (%)", 0.5, 12.0, float(cfg["tasa"] * 100), 0.1,
                        key="eq_tasa") / 100
@@ -132,16 +160,33 @@ def render():
     sim["delta"] = sim["com_nueva"] - sim["com_hoy"]
     sim = sim.sort_values("servido", ascending=False)
 
+    # La tabla recibe NÚMEROS, no texto ya formateado.
+    #
+    # Con `cop()` y `pct()` aplicados antes, el grid recibe strings: ordenar por
+    # «Venta neta» ordena alfabéticamente, las cifras se alinean a la izquierda
+    # y comparar dos filas obliga a leer dígito por dígito. Con column_config
+    # Streamlit ordena bien, alinea a la derecha y formatea solo.
     t = sim[["vendedor", "ciudad", "estilo", "cuentas", "neto", "desc_pct",
              "servido_pct", "servido", "com_hoy", "com_nueva", "delta"]].copy()
     for col in ("neto", "servido", "com_hoy", "com_nueva", "delta"):
-        t[col] = t[col].map(lambda x: cop(x, 0))
-    for col in ("desc_pct", "servido_pct"):
-        t[col] = t[col].map(lambda x: pct(x))
+        t[col] = (t[col] / 1e6).round(1)
     t.columns = ["Vendedor", "Ciudad", "Estilo", "Cuentas", "Venta neta", "Descuento",
                  "Margen servido %", "Margen servido", "Comisión hoy",
                  "Comisión nueva", "Diferencia"]
-    st.dataframe(t, hide_index=True, width="stretch")
+    tope = float(t["Margen servido %"].max()) * 1.15
+    st.dataframe(t, hide_index=True, width="stretch", row_height=40,
+                 column_config={
+        "Venta neta": st.column_config.NumberColumn(format="$%.0f M"),
+        "Descuento": st.column_config.NumberColumn(format="%.1f%%"),
+        # La barra hace visible de un vistazo el cruce que la pantalla entera
+        # quiere demostrar, sin necesidad de otro gráfico.
+        "Margen servido %": st.column_config.ProgressColumn(
+            format="%.1f%%", min_value=0, max_value=tope),
+        "Margen servido": st.column_config.NumberColumn(format="$%.0f M"),
+        "Comisión hoy": st.column_config.NumberColumn(format="$%.1f M"),
+        "Comisión nueva": st.column_config.NumberColumn(format="$%.1f M"),
+        "Diferencia": st.column_config.NumberColumn(format="$%+.1f M"),
+    })
 
     costo_hoy = sim["com_hoy"].sum()
     costo_nuevo = sim["com_nueva"].sum()

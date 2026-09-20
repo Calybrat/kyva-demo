@@ -99,7 +99,8 @@ def pista_clic(texto="Haz clic en cualquier punto para abrir su ficha"):
         f'background:{FONDO_SUAVE};border:1px solid {PALIDO};border-radius:99px;'
         f'padding:4px 12px;font-size:11px;color:{CLARO};margin:-4px 0 10px;'
         f'font-family:Montserrat,sans-serif">'
-        f'<span style="font-size:12px">👆</span>{texto}</div>',
+        f'<span style="width:5px;height:5px;border-radius:50%;'
+        f'background:{ACENTO};display:inline-block"></span>{texto}</div>',
         unsafe_allow_html=True)
 
 
