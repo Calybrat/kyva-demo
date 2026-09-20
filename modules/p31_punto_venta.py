@@ -426,7 +426,7 @@ def render():
         # Con 340 puntos superpuestos, el hover unificado de la casa devuelve un
         # tooltip de veinte líneas. Aquí manda el punto, no la columna.
         st.plotly_chart(light(fig, 400).update_layout(hovermode="closest"),
-                        use_container_width=True)
+                        width="stretch", theme=None, config=PLOTLY_CONFIG)
 
     with col[1]:
         bandas = pd.cut(d["sobreprecio_pct"], [0, 120, 160, 200, 400],
@@ -443,7 +443,7 @@ def render():
                           "<br>%{y:.1f}% no rota"
                           "<br>Índice mediano: %{customdata[1]:.0f}<extra></extra>"))
         fig2.update_yaxes(title="Referencias que no rotan (%)")
-        st.plotly_chart(light(fig2, 400), use_container_width=True)
+        st.plotly_chart(light(fig2, 400), width="stretch", theme=None, config=PLOTLY_CONFIG)
 
     pie = (f"El tamaño del círculo es lo que esa referencia nos compra al mes"
            + (f"; el eje está recortado en {num(TECHO_INDICE)} y "
@@ -521,7 +521,7 @@ def render():
                                 "de la red para ese producto)")
         fig3.update_yaxes(automargin=True)
         st.plotly_chart(light(fig3, 380).update_layout(hovermode="closest"),
-                        use_container_width=True)
+                        width="stretch", theme=None, config=PLOTLY_CONFIG)
     else:
         st.caption(
             f"Ningún producto está en {MIN_CUENTAS_SKU} o más cartas dentro de "
@@ -601,7 +601,7 @@ def render():
     fig4.update_xaxes(title="Índice de rotación contra la propia barra "
                             "(100 = como la mediana de esa cuenta)")
     fig4.update_yaxes(automargin=True)
-    st.plotly_chart(light(fig4, 320), use_container_width=True)
+    st.plotly_chart(light(fig4, 320), width="stretch", theme=None, config=PLOTLY_CONFIG)
 
     # El material que NO se defiende se nombra desde el dato, no desde la
     # memoria: la lista cambia con el filtro y una frase quemada envejece mal.
@@ -736,7 +736,7 @@ def render():
                        annotation_position="top")
     fig5.update_xaxes(title="Índice de rotación nuestro, contra la propia barra")
     fig5.update_yaxes(automargin=True)
-    st.plotly_chart(light(fig5, 320), use_container_width=True)
+    st.plotly_chart(light(fig5, 320), width="stretch", theme=None, config=PLOTLY_CONFIG)
 
     # Que compartir estante no cuesta lo mismo con todos se dice con el rango
     # que salga del dato, y no señalando a un competidor «amable» por nombre:
@@ -837,7 +837,7 @@ def render():
     fig6.update_yaxes(title="Lo que nos compra al mes", tickprefix="$",
                       ticksuffix=" M", tickformat=",.0f")
     st.plotly_chart(light(fig6, 380).update_layout(hovermode="closest"),
-                    use_container_width=True)
+                    width="stretch", theme=None, config=PLOTLY_CONFIG)
     st.caption(
         "Arriba a la derecha está lo caro: cuentas grandes que llevan varias "
         "cadencias sin supervisión. El tamaño del círculo es el número de "
