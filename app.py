@@ -95,6 +95,20 @@ with st.sidebar:
     if "page" not in st.session_state:
         st.session_state.page = list(PAGES.keys())[0]
 
+    # Filtros globales. Van ANTES de la navegación a propósito: la pregunta
+    # («solo Medellín», «solo las cuentas de Julián») es anterior a la pantalla.
+    from utils import b2b, filtros
+    st.markdown(
+        f'<div style="font-size:9px;font-weight:700;letter-spacing:.16em;'
+        f'text-transform:uppercase;color:{CLARO};margin:4px 0 6px 4px;'
+        f'font-family:Montserrat,sans-serif">Ver</div>', unsafe_allow_html=True)
+    try:
+        filtros.barra(b2b.cuentas())
+    except Exception:
+        pass
+    st.markdown(f'<div style="height:1px;background:rgba(229,225,230,.14);'
+                f'margin:16px 0 4px"></div>', unsafe_allow_html=True)
+
     for grupo, items in GRUPOS:
         st.markdown(
             f'<div style="font-size:9px;font-weight:700;letter-spacing:.16em;'

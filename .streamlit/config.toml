@@ -1,10 +1,69 @@
+# Tema del panel. Antes eran seis líneas con la sintaxis de 2023; Streamlit 1.60
+# expone unas sesenta opciones y permite separar claro, oscuro y barra lateral.
+#
+# Lo que más rinde de aquí son las tres paletas de gráfico: se declaran UNA vez
+# y las heredan los treinta y cinco gráficos de Plotly vía `theme="streamlit"`.
+# Antes cada módulo quemaba sus colores a mano, que es la razón por la que dos
+# pantallas usaban azules distintos para lo mismo.
+
 [theme]
 base = "light"
-primaryColor = "#0E113A"
-backgroundColor = "#F7FBFF"
-secondaryBackgroundColor = "#F1F8FE"
-textColor = "#052E4A"
-font = "sans serif"
+
+# La marca sale del logo real de kyva.co, no del ojo.
+primaryColor = "#0E113A"              # navy — el círculo del logo
+backgroundColor = "#FAF9FB"
+secondaryBackgroundColor = "#F4F2F5"
+textColor = "#0E113A"
+linkColor = "#CE6264"                 # coral — el secundario de la marca
+borderColor = "#E5E1E6"               # pálido — las letras del logo
+dataframeBorderColor = "#E5E1E6"
+dataframeHeaderBackgroundColor = "#F4F2F5"
+
+font = "Montserrat"
+headingFont = "DM Serif Display"
+baseFontSize = 14
+baseRadius = "small"
+buttonRadius = "medium"
+showWidgetBorder = true
+linkUnderline = false
+
+# ── Las paletas de gráfico ───────────────────────────────────────────────────
+# Categórica: los pares adyacentes se distinguen también con daltonismo. El
+# orden es fijo a propósito — el color debe seguir a la entidad, no a su puesto
+# en el ranking, o al filtrar por ciudad los supervivientes cambian de color y
+# el lector cree que cambió el dato.
+chartCategoricalColors = [
+  "#0E113A",  # navy de marca
+  "#CE6264",  # coral de marca
+  "#2B7A9B",  # teal
+  "#B5762F",  # ámbar
+  "#7D5BA6",  # violeta
+  "#2f7a48",  # verde
+  "#8B1E1E",  # granate
+  "#9193A1",  # gris de marca
+]
+
+# Secuencial: un solo tono de claro a oscuro. Nunca arcoíris.
+chartSequentialColors = [
+  "#EDEDF2", "#C9CBDA", "#9EA2C0", "#6E74A2",
+  "#484E85", "#2B3167", "#0E113A",
+]
+
+# Divergente: dos tonos con un neutro real en el centro. El centro es el color
+# de fondo secundario y no un gris cualquiera, así el cero desaparece de la
+# vista — que es exactamente lo que debe hacer.
+chartDivergingColors = [
+  "#8B1E1E", "#CE6264", "#F6DEDE", "#F4F2F5",
+  "#C9CBDA", "#484E85", "#0E113A",
+]
+
+[theme.sidebar]
+backgroundColor = "#0E113A"
+secondaryBackgroundColor = "#1A1E4A"
+textColor = "#E5E1E6"
+primaryColor = "#CE6264"
+borderColor = "#252A5C"
+showSidebarBorder = false
 
 [browser]
 gatherUsageStats = false
@@ -16,7 +75,7 @@ gatherUsageStats = false
 # el panel se quedaba en "your app is in the oven" (ya había pasado en
 # paranice-demo). Pero apagarlo trajo algo peor — Streamlit Cloud dejó de
 # enterarse de los despliegues nuevos y el contenedor siguió sirviendo el
-# código del arranque.
+# código del arranque durante horas, con el código correcto ya en GitHub.
 #
 # Ahora el registro vive fuera del árbol (ver utils/visitas.py), así que el
 # vigilante no lo ve. `runOnSave` sigue SIN poner: vigilar basta para que un

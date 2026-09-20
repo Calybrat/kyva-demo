@@ -1,0 +1,23 @@
+id,compromiso,area,dueno,creado,vence,estado,cerrado_el,valor,cuenta
+CM-001,Renegociar el descuento de Club Campestre Medellín de 16% a 11%,Comercial,Javier,2026-08-04,2026-08-11,Vencido,,0,Club Campestre Medellín
+CM-002,Pasar Bavaria Corp a entrega quincenal,Logística,Andrea Restrepo,2026-08-03,2026-08-17,Cumplido,2026-08-13,11000000,Bavaria Corp
+CM-003,Visitar Criterión: lleva 3 semanas sin pedir,Comercial,Santiago Ospina,2026-08-03,2026-08-17,Cumplido,2026-08-15,11000000,Criterión
+CM-004,Cobrar la cartera vencida de Sixtina,Cartera,Andrea Restrepo,2026-07-16,2026-07-30,Vencido,,18500000,Sixtina
+CM-005,Subir el pedido mínimo en la zona Zona T,Logística,Javier,2026-07-23,2026-08-13,Cumplido,2026-08-08,5800000,Club Militar
+CM-006,Emitir la orden de compra de whisky para diciembre,Compras,Diana (compras),2026-08-12,2026-09-11,Cumplido,2026-09-08,2400000,Prudencia
+CM-007,Revisar por qué Criterión devolvió producto dos veces seguidas,Calidad,Javier,2026-07-25,2026-08-08,Vencido,,0,Criterión
+CM-008,Cerrar el trimestre de Mil Demonios: faltan unidades para el tramo,Compras,Andrea Restrepo,2026-07-28,2026-08-27,Vencido,,2400000,Theatron
+CM-009,Instalar nevera exhibidora en Gun Club,Mercadeo,Diana (compras),2026-07-15,2026-08-05,Vencido,,0,Gun Club
+CM-010,Bajar el precio de la referencia que está 9% sobre el competidor,Comercial,Diana (compras),2026-07-18,2026-08-08,Vencido,,11000000,Bendito Sea
+CM-011,Renegociar el descuento de Bendito Seas de 28% a 23%,Comercial,Julián Mora,2026-08-22,2026-08-29,Cumplido,2026-08-25,0,Bendito Seas
+CM-012,Pasar Malvón a entrega quincenal,Logística,Valentina Ríos,2026-08-26,2026-09-02,En curso,,18500000,Malvón
+CM-013,Visitar Bancolombia: lleva 3 semanas sin pedir,Comercial,Valentina Ríos,2026-07-24,2026-08-07,Vencido,,0,Bancolombia
+CM-014,Cobrar la cartera vencida de Kukaramakara,Cartera,Javier,2026-08-27,2026-09-26,Cumplido,2026-09-21,0,Kukaramakara
+CM-015,Subir el pedido mínimo en la zona Parque 93,Logística,Diana (compras),2026-07-16,2026-07-23,Cumplido,2026-07-22,0,Gotica
+CM-016,Emitir la orden de compra de whisky para diciembre,Compras,Santiago Ospina,2026-07-14,2026-07-21,Cumplido,2026-07-19,5800000,Ecopetrol
+CM-017,Revisar por qué Sixtina devolvió producto dos veces seguidas,Calidad,Julián Mora,2026-07-21,2026-07-28,Vencido,,0,Sixtina
+CM-018,Cerrar el trimestre de Mil Demonios: faltan unidades para el tramo,Compras,Santiago Ospina,2026-08-07,2026-08-14,Cumplido,2026-08-11,0,El Chato
+CM-019,Instalar nevera exhibidora en Elcielo,Mercadeo,Santiago Ospina,2026-08-27,2026-09-03,En curso,,0,Elcielo
+CM-020,Bajar el precio de la referencia que está 9% sobre el competidor,Comercial,Valentina Ríos,2026-08-19,2026-08-26,Cumplido,2026-08-22,11000000,Theatron
+CM-021,Renegociar el descuento de Envy Rooftop de 34% a 29%,Comercial,Diana (compras),2026-08-23,2026-08-30,Vencido,,18500000,Envy Rooftop
+CM-022,Pasar Bavaria Corp a entrega quincenal,Logística,Paola Cárdenas,2026-07-21,2026-08-20,Cumplido,2026-08-20,0,Bavaria Corp
