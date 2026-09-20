@@ -26,12 +26,16 @@ st.markdown(CSS + HEADER_CSS, unsafe_allow_html=True)
 # panel gira alrededor de una sola pregunta: ¿crecer nos está dejando plata?
 GRUPOS = [
     ("El lunes a las 7", [
+        ("📋  Centro de decisiones", "p20_decisiones"),
         ("🏠  Tablero Ejecutivo", "p01_tablero"),
     ]),
     ("¿Crecer nos deja plata?", [
         ("💸  Dónde se va el margen", "p02_margen"),
         ("🧭  Los cuatro negocios", "p03_canales"),
         ("🏦  Caja y capital de trabajo", "p04_caja"),
+    ]),
+    ("¿Quién nos deja plata?", [
+        ("🏪  Rentabilidad por cuenta", "p21_cuentas"),
     ]),
     ("¿Quién compra y vuelve?", [
         ("🔁  Recompra y cohortes", "p05_recompra"),

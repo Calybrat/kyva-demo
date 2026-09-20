@@ -1,0 +1,15 @@
+hilo_id,ancla,modulo,abierto_por,abierto,asunto,mensajes,estado,desenlace
+H-001,Rentabilidad · Leo,p21_cuentas,Andrea Restrepo,2026-08-07,Leo cerró agosto en rojo,2,Resuelto,En revisión con el vendedor antes de tocar condiciones
+H-002,Rentabilidad · Vintrash,p21_cuentas,Andrea Restrepo,2026-08-08,Vintrash cerró agosto en rojo,6,Resuelto,Se le bajó el descuento del 27% al 22% desde septiembre
+H-003,Rentabilidad · Criterión,p21_cuentas,Andrea Restrepo,2026-08-12,Criterión cerró agosto en rojo,4,Resuelto,Se le bajó el descuento del 27% al 22% desde septiembre
+H-004,Rentabilidad · Mesa Franca,p21_cuentas,Andrea Restrepo,2026-08-20,Mesa Franca cerró agosto en rojo,2,En curso,Se le bajó el descuento del 27% al 22% desde septiembre
+H-005,Rentabilidad · Sixtina,p21_cuentas,Andrea Restrepo,2026-08-22,Sixtina cerró agosto en rojo,2,Resuelto,Se le bajó el descuento del 27% al 22% desde septiembre
+H-006,Rentabilidad · Bendito Sea,p21_cuentas,Andrea Restrepo,2026-08-18,Bendito Sea cerró agosto en rojo,4,Resuelto,Se le bajó el descuento del 27% al 22% desde septiembre
+H-007,Rentabilidad · Villanos en Bermudas,p21_cuentas,Javier,2026-08-29,¿Por qué Villanos en Bermudas creció tanto?,3,Resuelto,Cambió de administrador y amplió carta de coctelería
+H-008,Rentabilidad · Gun Club,p21_cuentas,Javier,2026-08-25,¿Por qué Gun Club creció tanto?,2,Resuelto,Cambió de administrador y amplió carta de coctelería
+H-009,Rentabilidad · Harry Sasson,p21_cuentas,Javier,2026-08-18,¿Por qué Harry Sasson creció tanto?,2,Resuelto,Cambió de administrador y amplió carta de coctelería
+H-010,Rentabilidad · Argos,p21_cuentas,Javier,2026-08-14,¿Por qué Argos creció tanto?,3,Resuelto,Cambió de administrador y amplió carta de coctelería
+H-011,Compras · ventana de diciembre,p17_reposicion,Javier,2026-08-23,"El whisky ya se pasó de fecha, ¿pedimos igual?",7,Resuelto,Se emitió la orden con sobrecosto de flete aéreo en dos referencias
+H-012,Rutas · Envigado,p24_rutas,Santiago Ospina,2026-08-19,Envigado nos está costando más de lo que deja,7,En curso,Propuesta: agrupar en un solo día de la semana
+H-013,Precios · Mil Demonios,p10_precios,Paola Cárdenas,2026-08-05,Estamos 9% por encima del competidor en la referencia de 750,6,Resuelto,Se ajustó el PVP sugerido y se avisó a los 14 clientes que la llevan
+H-014,Cartera · Discotecas,p04_caja,Andrea Restrepo,2026-08-30,Tres cuentas de discoteca pasadas de 30 días,3,En curso,Bloqueo de crédito activado en dos; la tercera negoció plan de pago
