@@ -503,6 +503,16 @@ CSS_PRODUCTO = f"""
 [data-testid="stColumn"] [data-testid="stMarkdownContainer"] {{
   height:100%; display:flex; flex-direction:column;
 }}
+/* Columnas ANIDADAS —el titular y sus tres apoyos— necesitan su propia regla:
+   el stretch del bloque exterior no llega al interior y las tres de apoyo
+   volvían a quedar con el borde inferior desparejo. */
+[data-testid="stColumn"] [data-testid="stHorizontalBlock"] {{
+  align-items:stretch !important; height:100%;
+}}
+[data-testid="stColumn"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {{
+  display:flex !important;
+}}
+.ky-kpi, .ky-hero-card {{ flex:1 1 auto; }}
 
 /* El foco de teclado era el azul por defecto de Streamlit, que no es de la
    marca. Y nunca outline:none — deja la app inutilizable sin ratón. */
@@ -641,3 +651,53 @@ def md(texto: str) -> str:
     NO se usa.
     """
     return str(texto).replace("$", r"\$")
+
+
+def kpi_hero(label: str, value: str, delta: str = "", delta_good: bool = True,
+             apoyo: str = "", ayuda: str = "") -> str:
+    """La única cifra grande de la pantalla. Una por módulo.
+
+    De la auditoría de diseño, y es la crítica central:
+
+        «Las cuatro tarjetas pesan exactamente lo mismo: mismo ancho, misma
+        cifra. Si la pantalla se llama Centro de decisiones y el subtítulo dice
+        "ordenado por la plata que cuesta no decidirlo", entonces esa plata es
+        el titular y las otras tres son contexto.»
+
+    Tenía razón. Cuatro cajas idénticas no son una jerarquía: el ojo no sabe
+    dónde empezar, y como todas pesan igual, ninguna es la respuesta. Esta va
+    en navy sólido y al triple de tamaño, no un 15% más grande.
+    """
+    color = "#7FD1A8" if delta_good else "#F3A6A7"
+    d = (f'<p style="font:600 13px/1.4 Montserrat,sans-serif;color:{color};'
+         f'margin:10px 0 0">{delta}</p>' if delta else "")
+    a = (f'<p style="font-size:12px;color:rgba(229,225,230,.72);margin:8px 0 0;'
+         f'line-height:1.5">{apoyo}</p>' if apoyo else "")
+    tip = f' title="{ayuda}"' if ayuda else ""
+    return f"""
+    <div class="ky-hero-card"{tip} style="background:{PRIMARIO};color:#fff;
+      border-radius:12px;padding:22px 26px;height:100%;display:flex;
+      flex-direction:column;justify-content:center">
+      <p style="font:700 10px/1.2 Montserrat,sans-serif;letter-spacing:.15em;
+        text-transform:uppercase;color:rgba(229,225,230,.62);margin:0">{label}</p>
+      <p style="font:600 46px/1.02 Montserrat,sans-serif;letter-spacing:-.025em;
+        margin:12px 0 0;font-variant-numeric:tabular-nums">{value}</p>
+      {d}{a}
+    </div>"""
+
+
+def fila_kpi(titular_kpi: str, apoyos: list) -> None:
+    """Un titular ancho a la izquierda y tres de apoyo a la derecha.
+
+    La proporción 1,15 : 2,1 es la que hace que el titular domine sin ahogar a
+    los otros tres. Con cuatro columnas iguales el ojo los lee como una lista;
+    así los lee como una respuesta y su contexto.
+    """
+    import streamlit as st
+    izq, der = st.columns([1.15, 2.1], gap="medium")
+    with izq:
+        st.markdown(titular_kpi, unsafe_allow_html=True)
+    with der:
+        cols = st.columns(len(apoyos), gap="small")
+        for c, html in zip(cols, apoyos):
+            c.markdown(html, unsafe_allow_html=True)

@@ -129,6 +129,21 @@ CUPO_BANDEJA = 25
 MINIMO_POR_FUENTE = 2
 
 
+class _Cap:
+    """Recoge una tarjeta en vez de pintarla.
+
+    Existe para no reescribir las cuatro llamadas a `kpi()` que ya están bien
+    redactadas: solo cambia DÓNDE se pintan. La primera pasa a ser el titular
+    en navy y las otras tres, apoyos más pequeños a su derecha.
+    """
+
+    def __init__(self, destino):
+        self.destino = destino
+
+    def markdown(self, html, **_):
+        self.destino.append(html)
+
+
 # ── Construcción de la bandeja ───────────────────────────────────────────────
 def _clave(tipo: str, ident: str) -> str:
     """Identificador estable de una fila, para poder recordarla en disco.
@@ -662,24 +677,17 @@ def render():
     abierto = total - cerrado
     altas = int((pendientes["urgencia"] == "Alta").sum())
 
-    k = st.columns(4, gap="small")
     pospuestas = int(b["clave"].isin(aplazadas).sum())
-    k[0].markdown(kpi(
-        "Esperando decisión", num(len(pendientes)),
-        f"{altas} no pueden esperar a la otra semana"
-        + (f" · {pospuestas} aplazadas" if pospuestas else ""),
-        altas == 0, "📋",
-        "Cada una trae el número, las opciones y quién decide."),
-        unsafe_allow_html=True)
-    k[1].markdown(kpi(
-        "En juego", cop(abierto, 0),
-        "utilidad en riesgo a doce meses", False, "💰",
-        "Todas las filas están en la misma unidad: la venta de una cuenta que "
-        "se apagó y el costo de una mercancía que falta se convierten a margen "
-        "antes de sumarse. Lo aplazado sigue contando: aplazar no mueve la "
-        "plata de sitio.",
-        "Es lo que ordena la bandeja — no la gravedad declarada"),
-        unsafe_allow_html=True)
+    fuentes = sorted(b["origen"].unique())
+
+    apoyos = [
+        kpi("Esperando decisión", num(len(pendientes)),
+            f"{altas} no pueden esperar a la otra semana"
+            + (f" · {pospuestas} aplazadas" if pospuestas else ""),
+            altas == 0, "",
+            "Cada una trae el número, las opciones y quién decide."),
+    ]
+    k = [None, None, _Cap(apoyos), _Cap(apoyos)]
     k[2].markdown(kpi(
         "Con dueño y fecha", num(len(en_vista)),
         cop(cerrado, 0) + " comprometidos", len(en_vista) > 0, "✍️",
@@ -689,7 +697,6 @@ def render():
     # El número y el texto salen de la misma lista: antes el KPI era dinámico
     # —con un filtro de ciudad bajaba a cinco— y la ayuda seguía enumerando
     # ocho sistemas fijos. Un número que se desmiente al pasar el mouse.
-    fuentes = sorted(b["origen"].unique())
     k[3].markdown(kpi(
         "Sistemas que se consultan", num(len(fuentes)),
         "con algo que decidir, en una sola bandeja", True, "🔗",
@@ -697,6 +704,17 @@ def render():
         "esta vista aportan filas: " + ", ".join(f.lower() for f in fuentes)
         + ". Los que no aparecen se consultaron y no tenían nada."),
         unsafe_allow_html=True)
+
+    fila_kpi(
+        kpi_hero("En juego si nadie decide hoy", cop(abierto, 0),
+                 f"{len(pendientes)} decisiones esperando",
+                 False,
+                 "Utilidad en riesgo a doce meses. Todas las filas están en la "
+                 "misma unidad: la venta de una cuenta que se apagó y el costo "
+                 "de una mercancía que falta se convierten a margen antes de "
+                 "sumarse. Lo aplazado sigue contando — aplazar no mueve la "
+                 "plata de sitio."),
+        apoyos)
 
     st.markdown(espacio(18), unsafe_allow_html=True)
 
