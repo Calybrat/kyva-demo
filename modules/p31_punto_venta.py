@@ -151,12 +151,13 @@ def _por_cuenta(d: pd.DataFrame) -> pd.DataFrame:
     """Una fila por establecimiento.
 
     `visitada_hace_dias` viene por referencia, no por cuenta: cada fila es el
-    chequeo de ESA referencia en ESA barra. El mínimo es entonces la última vez
-    que alguien pisó el local, y el máximo, la referencia que lleva más tiempo
-    sin que nadie la mire. Las dos cosas sirven y son distintas: la primera es
-    cobertura de ruta, la segunda es el punto ciego de segundo orden —el
-    vendedor entra, levanta el pedido de lo que ya rota y no mira el resto del
-    estante—.
+    chequeo de ESA referencia en ESA barra. El mínimo (`visita`) es entonces la
+    última vez que alguien pisó el local, y el máximo (`chequeo`), la referencia
+    que lleva más tiempo sin que nadie la mire. Las dos sirven y son distintas:
+    `visita` manda la lista de fuera de ruta, `chequeo` y `olvidadas` son el
+    punto ciego de segundo orden —el vendedor entra, levanta el pedido de lo que
+    ya rota y no mira el resto del estante— y salen como columnas de esa misma
+    lista, que es donde se pueden usar.
     """
     a = d.groupby(["cuenta_id", "nombre", "canal", "ciudad", "zona", "vendedor"],
                   as_index=False).agg(
@@ -229,7 +230,12 @@ def _gemelas(a: pd.DataFrame):
                 score = (razon * 10
                          + (alta.pop_pct - baja.pop_pct)
                          + (baja.comp_pct - alta.comp_pct)
-                         + (baja.visita - alta.visita) * 2
+                         # La visita se puntúa en veces la cadencia y no en
+                         # días sueltos: 17 días de diferencia entre dos
+                         # cuentas de ruta mensual no son un hallazgo, y con
+                         # los días crudos ese par le ganaba a uno con el
+                         # doble de retraso real.
+                         + (baja.retraso - alta.retraso) * 15
                          + (30 if baja.refs == alta.refs else 0)
                          # Que el sobreprecio casi coincida es lo que cierra el
                          # argumento: sin eso siempre queda la salida fácil de
@@ -555,8 +561,8 @@ def render():
                 f"<b>{v0['zona']}</b>, dos cuentas a pocas cuadras tienen "
                 f"<b>{v0['producto']}</b> con {pct(v0['brecha'], 0)} de "
                 f"diferencia de precio al público. De los "
-                f"{_pl(len(vec), 'par')} zona–producto donde hay con qué "
-                f"comparar, <b>{_pl(graves, 'par')} "
+                f"{_pl(len(vec), 'par', 'pares')} zona–producto donde hay con "
+                f"qué comparar, <b>{_pl(graves, 'par', 'pares')} "
                 f"{'pasa' if graves == 1 else 'pasan'} del "
                 f"{num(BRECHA_VECINO)}%</b>. El que quedó caro pierde rotación "
                 f"contra el de al lado, y el que quedó barato vuelve a pedirnos "
@@ -623,7 +629,12 @@ def render():
             "más que ella: en esta vista **ninguna pieza de POP rinde por debajo "
             "de no tener nada**.")
 
-    sin_nada = a[a["pop_pct"] == 0].sort_values("valor", ascending=False)
+    # Se nombra la cuenta con MÁS plata mal cubierta, no la única que está en
+    # cero: el «cero piezas» es casi siempre una cuenta chica de tres
+    # referencias, y presentarla como la oportunidad de POP es regalarle al
+    # gerente la respuesta «esa no me mueve la aguja».
+    sin_nada = a[a["pop_pct"] < 50].sort_values("valor", ascending=False)
+    en_cero = int((a["pop_pct"] == 0).sum())
     # La plata NO se cuantifica con el promedio de todas las piezas: el gráfico
     # de arriba acaba de mostrar que una de ellas rinde por debajo de cero, y
     # aplicarle a todo el universo el promedio de un grupo desigual es
@@ -644,9 +655,11 @@ def render():
             f"todas— valdría del orden de "
             f"{cop(float(d.loc[~d['con_pop'], 'valor'].sum()) * retorno_bueno / 100, 0)} "
             f"de compra al mes. Es un techo, no una promesa: supone que esas "
-            f"referencias responden como las piezas que hoy funcionan, y "
-            f"{_pl(len(reales) - len(pagan), 'pieza')} de las "
-            f"{_pl(len(reales), 'que se reparten')} no funciona.<br><br>")
+            f"referencias responden como las piezas que hoy funcionan, y de "
+            f"las {_pl(len(reales), 'pieza')} que se reparten, "
+            f"{num(len(reales) - len(pagan))} no "
+            f"{'funciona' if len(reales) - len(pagan) == 1 else 'funcionan'}"
+            f".<br><br>")
     elif pop_comparable and retorno_pop > 0:
         titulo_pop = "El POP sí paga, y hasta hoy nadie lo había medido"
         cuerpo_pop = (
@@ -672,13 +685,14 @@ def render():
             f"aparece.<br><br>")
     if len(sin_nada):
         s0 = sin_nada.iloc[0]
-        quien = ("La única es" if len(sin_nada) == 1 else "La más grande es")
         cuerpo_pop += (
-            f"Hay <b>{_pl(len(sin_nada), 'cuenta')} sin una sola pieza de "
-            f"material</b>. {quien} <b>{s0['nombre']}</b> "
-            f"({s0['canal']}, {s0['ciudad']}), que compra {cop(s0['valor'], 0)} "
-            f"al mes con {_pl(s0['refs'], 'referencia')} en carta y ni una "
-            f"nevera, ni un hablador, ni un menú.<br><br>")
+            f"Hay <b>{_pl(len(sin_nada), 'cuenta')} donde menos de la mitad de "
+            f"lo que tenemos en carta tiene una pieza encima</b>"
+            + (f", y {_pl(en_cero, 'cuenta')} sin una sola" if en_cero else "")
+            + f". La que más pesa es <b>{s0['nombre']}</b> "
+            f"({s0['canal']}, {s0['ciudad']}): nos compra {cop(s0['valor'], 0)} "
+            f"al mes con {_pl(s0['refs'], 'referencia')} en carta y solo "
+            f"{int(s0['con_pop'])} con material.<br><br>")
     cuerpo_pop += (
         "<b>Lo que hay que cambiar en la operación.</b> Hoy el material se "
         "entrega cuando el vendedor lo pide y no se vuelve a mirar. Medido por "
@@ -724,20 +738,26 @@ def render():
     fig5.update_yaxes(automargin=True)
     st.plotly_chart(light(fig5, 320), use_container_width=True)
 
-    # Quién nos conviene de vecino sale del dato: en una red donde cambia el
-    # surtido cada trimestre, quemar un nombre en el texto lo deja mintiendo.
-    amable = comp[comp["refs"] >= MIN_COMP_REFS].nlargest(1, "indice")
+    # Que compartir estante no cuesta lo mismo con todos se dice con el rango
+    # que salga del dato, y no señalando a un competidor «amable» por nombre:
+    # la diferencia entre el segundo y el tercero de la lista es del tamaño del
+    # ruido, y un nombre quemado en el texto envejece mal con el surtido.
+    otros = comp[(comp["refs"] >= MIN_COMP_REFS)
+                 & (comp["competencia"] != (rival["competencia"] if rival is not None else ""))]
     base_caption = ("Se compara renglón contra renglón dentro de la misma "
                     "barra, no cuenta contra cuenta: lo que mide es cuánto nos "
                     "cuesta compartir estante con cada uno, no si las cuentas "
                     "donde están son mejores o peores. ")
-    if len(amable) and np.isfinite(idx_limpio) and amable.iloc[0]["indice"] > idx_limpio:
+    if rival is not None and len(otros) >= 2:
         st.caption(
             base_caption +
-            f"**Tener competencia adentro no es en sí el problema** —con "
-            f"{amable.iloc[0]['competencia']} al lado rotamos por encima del "
-            f"renglón limpio—: el problema tiene nombre propio y es el que "
-            f"aparece abajo del todo.")
+            f"**Y no cuesta lo mismo con todos**: con "
+            f"{rival['competencia']} nuestro índice cae "
+            f"{signo(rival['delta'], 0)}, mientras que con el resto de la lista "
+            f"la diferencia contra el renglón limpio va de "
+            f"{signo(otros['delta'].min(), 0)} a {signo(otros['delta'].max(), 0)} "
+            f"— es decir, casi nada. El problema tiene nombre propio y es el "
+            f"que aparece abajo del todo.")
     else:
         st.caption(base_caption.strip())
 
@@ -836,6 +856,11 @@ def render():
             "Muertas": fuera["muertas"].astype(int),
             "Con material": fuera["con_pop"].astype(int),
             "Competidores adentro": fuera["competidores"].astype(int),
+            # El renglón más viejo de la cuenta y cuántos van varias visitas
+            # sin que nadie los mire: es la diferencia entre «hay que pasar» y
+            # «hay que pasar Y revisar el estante del fondo».
+            "Renglón más viejo (días)": fuera["chequeo"].astype(int),
+            "Renglones sin mirar": fuera["olvidadas"].astype(int),
             "Nos compran al mes": fuera["valor"].map(lambda v: cop(v, 0))})
         st.dataframe(tv, hide_index=True, width="stretch")
 
@@ -896,8 +921,9 @@ def render():
     st.markdown(espacio(10), unsafe_allow_html=True)
 
     dif_pop = alta.pop_pct - baja.pop_pct
-    dif_vis = baja.visita - alta.visita
     dif_comp = baja.comp_pct - alta.comp_pct
+    dif_ruta = baja.retraso - alta.retraso
+    dif_muertas = baja.muertas - alta.muertas
     dif_sobre = abs(alta.sobreprecio - baja.sobreprecio)
     rango_red = d["sobreprecio_pct"].max() - d["sobreprecio_pct"].min()
     # No se dice «prácticamente igual» de una diferencia que el propio módulo
@@ -906,10 +932,37 @@ def render():
     frase_precio = (
         f"un sobreprecio de carta que no los separa "
         f"({pct(baja.sobreprecio, 0)} contra {pct(alta.sobreprecio, 0)}: "
-        f"{num(dif_sobre, 0)} puntos, sobre un rango de red de "
+        f"{_pl(dif_sobre, 'punto')} de diferencia, sobre un rango de red de "
         f"{num(rango_red, 0)})")
-    st.markdown(panel(
-        "El ERP dice cuál compra menos; esto dice sobre qué se puede actuar",
+
+    # Las cuatro dimensiones se reparten entre las que DE VERDAD separan a este
+    # par y las que no. Listar «5 de 8 contra 5 de 8» bajo el rótulo «lo que las
+    # separa» es la clase de renglón que el gerente lee en voz alta en la
+    # reunión, y con él se cae el resto de la lista aunque el resto sea cierto.
+    separan, iguales = [], []
+    for titulo, texto, hay_diferencia in [
+        ("Material",
+         f"{int(alta.con_pop)} de {int(alta.refs)} referencias con POP contra "
+         f"{int(baja.con_pop)} de {int(baja.refs)} ({signo(dif_pop, 0)} de "
+         f"cobertura)", dif_pop >= 15),
+        ("Competencia",
+         f"{int(baja.competidores)} de {int(baja.refs)} referencias con otro "
+         f"distribuidor al lado contra {int(alta.competidores)} de "
+         f"{int(alta.refs)}", dif_comp >= 15),
+        ("Visita",
+         f"última entrada hace {_pl(baja.visita, 'día')} contra "
+         f"{int(alta.visita)} — {num(baja.retraso, 1)} veces su cadencia contra "
+         f"{num(alta.retraso, 1)}, sobre rutas pactadas de "
+         f"{num(baja.cadencia, 0)} y {num(alta.cadencia, 0)} días",
+         dif_ruta >= 0.3),
+        ("Referencias muertas",
+         f"{int(baja.muertas)} de {int(baja.refs)} contra {int(alta.muertas)} "
+         f"de {int(alta.refs)}", dif_muertas >= 1),
+    ]:
+        (separan if hay_diferencia else iguales).append(
+            f"· <b>{titulo}:</b> {texto}.<br>")
+
+    cuerpo_par = (
         f"<b>{baja.nombre}</b> y <b>{alta.nombre}</b> son el mismo canal "
         f"({baja.canal}), la misma ciudad, cartas de "
         f"{int(baja.refs)} y {int(alta.refs)} referencias nuestras y "
@@ -919,26 +972,44 @@ def render():
         f"{cop(baja.valor_ref, 0)} al mes.<br><br>"
         f"Esa diferencia el ERP la muestra —son dos cuentas activas del mismo "
         f"segmento y una factura más que la otra—. Lo que el ERP no tiene es "
-        f"ninguna columna sobre la que se pueda hacer algo el martes. Estas "
-        f"cuatro sí, y son las que las separan:<br>"
-        f"· <b>Material:</b> {int(alta.con_pop)} de {int(alta.refs)} referencias "
-        f"con POP contra {int(baja.con_pop)} de {int(baja.refs)} "
-        f"({signo(dif_pop, 0)} de cobertura).<br>"
-        f"· <b>Competencia:</b> {int(baja.competidores)} de {int(baja.refs)} "
-        f"referencias con otro distribuidor al lado contra "
-        f"{int(alta.competidores)} de {int(alta.refs)} "
-        f"({num(dif_comp, 0)} puntos de diferencia).<br>"
-        f"· <b>Visita:</b> última entrada hace {int(baja.visita)} días contra "
-        f"{int(alta.visita)} — {num(dif_vis, 0)} días de diferencia, sobre "
-        f"cadencias pactadas de {num(baja.cadencia, 0)} y "
-        f"{num(alta.cadencia, 0)}.<br>"
-        f"· <b>Referencias muertas:</b> {int(baja.muertas)} de {int(baja.refs)} "
-        f"contra {int(alta.muertas)} de {int(alta.refs)}.<br><br>"
-        f"<b>La decisión.</b> Nadie va a arreglar {baja.nombre} bajándole el "
+        f"ninguna columna sobre la que se pueda hacer algo el martes. ")
+    if separan:
+        cuerpo_par += ("<b>Donde de verdad se separan:</b><br>"
+                       + "".join(separan))
+        if iguales:
+            cuerpo_par += ("<br><b>Y donde no se separan</b>, que es igual de "
+                           "importante para no vender humo:<br>"
+                           + "".join(iguales))
+    else:
+        cuerpo_par += ("Y en este par, ninguna de las cuatro abre una brecha "
+                       "clara — el contraste está en la pantalla, pero la "
+                       "explicación hay que ir a buscarla al local:<br>"
+                       + "".join(iguales))
+
+    # La decisión se arma con las palancas que SÍ separan a este par. Recomendar
+    # «entrar cada 12 días» a una cuenta que está al día con su ruta es el tipo
+    # de consejo que le enseña al equipo a no leer la pantalla.
+    acciones = []
+    if dif_pop >= 15:
+        acciones.append("poner material donde no hay")
+    if dif_ruta >= 0.3:
+        acciones.append(f"entrar cada {num(baja.cadencia, 0)} días como está "
+                        f"pactado")
+    if baja.muertas:
+        acciones.append(f"pelear "
+                        f"{_pl(baja.muertas, 'renglón muerto', 'renglones muertos')} "
+                        f"antes de que los reemplace el de al lado")
+    if not acciones:
+        acciones.append("volver a la cuenta con la ficha de esta pantalla en la "
+                        "mano y levantar lo que falta")
+    cuerpo_par += (
+        f"<br><b>La decisión.</b> Nadie va a arreglar {baja.nombre} bajándole el "
         f"precio: en esta misma pantalla se ve que el precio de carta no mueve "
-        f"la rotación. Se arregla con lo que sí la mueve — poner material donde "
-        f"no hay, entrar cada {num(baja.cadencia, 0)} días como está pactado, y "
-        f"pelear {_pl(baja.muertas, 'renglón muerto', 'renglones muertos')} "
-        f"antes de que los reemplace el de al lado. Es una decisión de ruta y de "
-        f"mercadeo, y por eso no aparece en ningún informe de ventas.",
-        "🧭", "alerta"), unsafe_allow_html=True)
+        f"la rotación. Se arregla con lo que sí la mueve — "
+        + ", ".join(acciones[:-1])
+        + (" y " if len(acciones) > 1 else "") + acciones[-1] + ". "
+        f"Son decisiones de quien maneja la ruta y el material, y por eso no "
+        f"aparecen en ningún informe de ventas.")
+    st.markdown(panel(
+        "El ERP dice cuál compra menos; esto dice sobre qué se puede actuar",
+        cuerpo_par, "🧭", "alerta"), unsafe_allow_html=True)

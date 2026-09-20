@@ -280,7 +280,7 @@ def render():
     fig.update_layout(yaxis2=dict(overlaying="y", side="right", showgrid=False,
                                   ticksuffix="%", tickfont=dict(color=ACENTO),
                                   rangemode="tozero"))
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch", theme=None, config=PLOTLY_CONFIG)
     bajo_100 = int((m["cumplimiento"] < 100).sum())
     st.caption(
         f"La línea coral es el cumplimiento. Que **no baje nunca del 100%** en "
@@ -315,7 +315,7 @@ def render():
                "eso se abre canal y ciudad, que es el nivel al que alguien "
                "responde.")
     st.plotly_chart(light(_cascada(g, base, total, "Desviación contra el compromiso"),
-                          400, moneda=True), use_container_width=True)
+                          400, moneda=True), width="stretch")
     st.caption(pie)
 
     # El panel habla SIEMPRE del año, aunque el gráfico esté abierto en el mes:
@@ -441,7 +441,7 @@ def render():
     fig2.update_layout(hovermode="closest")
     fig2.update_xaxes(title="Vendido enero–agosto · millones de pesos",
                       tickprefix="$", ticksuffix=" M", tickformat=",.0f")
-    st.plotly_chart(fig2, use_container_width=True)
+    st.plotly_chart(fig2, width="stretch", theme=None, config=PLOTLY_CONFIG)
     st.caption(
         "El trazo vertical oscuro es la meta de cada línea. Están ordenadas por "
         "**tamaño del compromiso**, no por cumplimiento: una línea pequeña al "
@@ -635,7 +635,7 @@ def render():
         name=("Proyección con la estacionalidad de 2025" if hay_forma
               else f"Proyección al ritmo de {mes_es(CORTE)}"),
         mode="lines", line=dict(color=ACENTO, width=2.4, dash="dash")))
-    st.plotly_chart(light(fig3, 340, moneda=True), use_container_width=True)
+    st.plotly_chart(light(fig3, 340, moneda=True), width="stretch", theme=None, config=PLOTLY_CONFIG)
 
     entrega_resto = float(sum(proy_mes))
     cierre = real_ytd + entrega_resto

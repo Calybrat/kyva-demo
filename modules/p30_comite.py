@@ -521,7 +521,7 @@ def render():
                 font=dict(size=11, color=VERDE if fila["pct"] >= 70 else ROJO))
         f = light(fig, 60 + 34 * len(g))
         f.update_layout(hovermode="closest")
-        st.plotly_chart(f, use_container_width=True)
+        st.plotly_chart(f, width="stretch", theme=None, config=PLOTLY_CONFIG)
 
         # La comparación dice los dos denominadores en vez de afirmar que son
         # parecidos sin haberlo comprobado: con un filtro puesto pueden ser uno

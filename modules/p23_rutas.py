@@ -109,7 +109,7 @@ def render():
                           "<br>Se lleva el %{customdata[2]:.1f}% de la venta<extra></extra>"))
     fig.update_xaxes(title="Cuentas en la zona")
     fig.update_yaxes(title="Costo por entrega (COP)")
-    st.plotly_chart(light(fig, 400), use_container_width=True)
+    st.plotly_chart(light(fig, 400), width="stretch", theme=None, config=PLOTLY_CONFIG)
     st.caption(
         "La relación es la que uno esperaría y casi nadie cuantifica: **entre más "
         "cuentas hay en una zona, más barato sale cada parada**, porque el "

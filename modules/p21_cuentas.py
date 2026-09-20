@@ -185,7 +185,7 @@ def render():
                           hovertemplate="Servido: %{x:.1f}%<extra></extra>"))
     fig2.update_layout(barmode="overlay")
     fig2.update_xaxes(title="% sobre venta neta")
-    st.plotly_chart(light(fig2, 300), use_container_width=True)
+    st.plotly_chart(light(fig2, 300), width="stretch", theme=None, config=PLOTLY_CONFIG)
 
     peor = g.iloc[-1]
     mejor = g.iloc[0]
@@ -216,7 +216,7 @@ def render():
 
     col = st.columns([3, 2], gap="large")
     with col[0]:
-        st.plotly_chart(light(_cascada(c), 330, moneda=True), use_container_width=True)
+        st.plotly_chart(light(_cascada(c), 330, moneda=True), width="stretch", theme=None, config=PLOTLY_CONFIG)
     with col[1]:
         st.markdown(espacio(20), unsafe_allow_html=True)
         filas = [
@@ -293,7 +293,7 @@ def _abrir_ficha(r, nombre):
             f'margin-top:3px">{val}</div></div>', unsafe_allow_html=True)
 
     st.markdown(espacio(14), unsafe_allow_html=True)
-    st.plotly_chart(light(_cascada(c), 300, moneda=True), use_container_width=True)
+    st.plotly_chart(light(_cascada(c), 300, moneda=True), width="stretch", theme=None, config=PLOTLY_CONFIG)
 
     # Hasta la factura. Es lo que permite discutir el número con el vendedor.
     try:

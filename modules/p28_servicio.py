@@ -323,7 +323,7 @@ def render():
             title="Líneas servidas completas (%)",
             range=[min(FILL_SANO[0] - 0.5, float(fill_mes.min()) - 0.4),
                    max(100.2, float(fill_mes.max()) + 0.5)])
-        st.plotly_chart(light(fig, 330), use_container_width=True)
+        st.plotly_chart(light(fig, 330), width="stretch", theme=None, config=PLOTLY_CONFIG)
         st.caption(
             f"La franja verde es el 95-98% que el sector considera sano. "
             f"El punto va **rojo por debajo de 95%** —ahí se pierden cuentas— y "
@@ -338,7 +338,7 @@ def render():
             x=[mes_es(m) for m in pm.index], y=pm.values, marker_color=ACENTO,
             name="Venta perdida"))
         fig2.update_yaxes(title="Venta perdida del mes")
-        st.plotly_chart(light(fig2, 330, moneda=True), use_container_width=True)
+        st.plotly_chart(light(fig2, 330, moneda=True), width="stretch", theme=None, config=PLOTLY_CONFIG)
         # La categoría sale del dato, no de la memoria: decir «casi siempre
         # whisky» cuando el whisky es el 48% es la clase de frase redonda que
         # el que conoce su negocio desarma en un segundo.
@@ -374,7 +374,7 @@ def render():
                       "<br>%{x:,.0f}<extra></extra>"))
     fig3.update_xaxes(title="Venta perdida del periodo",
                       range=[0, float(m["valor"].max()) * 1.42])
-    st.plotly_chart(light(fig3, 300), use_container_width=True)
+    st.plotly_chart(light(fig3, 300), width="stretch", theme=None, config=PLOTLY_CONFIG)
 
     top_m = m.iloc[-1]
     area_top = q.assign(area=q["motivo"].map(_area)).groupby(
@@ -413,7 +413,7 @@ def render():
                           "<br>%{customdata[1]} cuentas afectadas"
                           "<br>%{x:,.0f}<extra></extra>"))
         fig4.update_xaxes(title="Venta perdida · top 10 marcas")
-        st.plotly_chart(light(fig4, 360), use_container_width=True)
+        st.plotly_chart(light(fig4, 360), width="stretch", theme=None, config=PLOTLY_CONFIG)
         st.caption(
             "Fallar una marca exclusiva pesa doble: se pierde la venta **y** "
             "las unidades que cuentan para la cuota del trimestre con ese "
@@ -490,7 +490,7 @@ def render():
                               "<br>%{z:,.0f}<extra></extra>"))
             fig5 = light(fig5, 320)
             fig5.update_layout(hovermode="closest")
-            st.plotly_chart(fig5, use_container_width=True)
+            st.plotly_chart(fig5, width="stretch", theme=None, config=PLOTLY_CONFIG)
         with c3[1]:
             resp = d.groupby("responsable").agg(
                 valor=("valor", "sum"), unidades=("unidades", "sum"),
@@ -505,7 +505,7 @@ def render():
                               "<br>%{customdata[1]:,.0f} unidades<extra></extra>"))
             fig6.update_xaxes(title="Valor devuelto",
                               range=[0, float(resp["valor"].max()) * 1.45])
-            st.plotly_chart(light(fig6, 320), use_container_width=True)
+            st.plotly_chart(light(fig6, 320), width="stretch", theme=None, config=PLOTLY_CONFIG)
 
         # Los motivos se enumeran desde el DATO y ordenados por plata. Antes la
         # lista estaba escrita a mano, decía «cuatro problemas» y se saltaba

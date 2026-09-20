@@ -406,7 +406,7 @@ def render():
                       "En riesgo: $%{y:,.1f} M<extra></extra>"))
     fig.update_layout(barmode="overlay")
     fig.update_yaxes(title="Millones de pesos", tickprefix="$", ticksuffix=" M")
-    st.plotly_chart(light(fig, 320), use_container_width=True)
+    st.plotly_chart(light(fig, 320), width="stretch", theme=None, config=PLOTLY_CONFIG)
     st.caption(
         "La barra clara es el valor completo del lote; la coral, la parte que la "
         "demanda no alcanza a consumir antes de la fecha. **En la última columna "
@@ -446,7 +446,7 @@ def render():
     fig2.update_yaxes(title="Días que tarda en venderse al ritmo de hoy", type="log")
     f2 = light(fig2, 440)
     f2.update_layout(hovermode="closest")
-    st.plotly_chart(f2, use_container_width=True)
+    st.plotly_chart(f2, width="stretch", theme=None, config=PLOTLY_CONFIG)
     banda = (f"La banda pegada al techo son los {num(len(muertos))} lotes sin una "
              f"sola venta en noventa días: no tienen fecha de consumo, solo fecha "
              f"de caducidad."

@@ -704,7 +704,7 @@ def render():
     st.markdown('<div class="ky-sub">De qué es el problema este mes</div>',
                 unsafe_allow_html=True)
     st.plotly_chart(light(_grafico_plata(b, comprometidas, aplazadas), 300),
-                    use_container_width=True)
+                    width="stretch")
     st.caption(md(
         f"Verde es lo que ya tiene dueño y fecha. De **{cop(total, 0)}** en "
         f"juego, **{cop(cerrado, 0)}** están asignados y **{cop(abierto, 0)}** "

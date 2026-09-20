@@ -90,7 +90,15 @@ def barra(cuentas: pd.DataFrame) -> None:
                                  index=vendedores.index(e["vendedor"])
                                  if e["vendedor"] in vendedores else 0)
     if activo() and st.button("Quitar filtros", width="stretch", key="f_clear"):
+        # Hay que borrar DOS cosas. El diccionario de arriba es el estado que
+        # leen los módulos, pero cada selectbox guarda además el suyo con su
+        # clave, y cuando esa clave existe Streamlit ignora el `index` que se
+        # le pase. Limpiando solo el diccionario, el control seguía mostrando
+        # «Medellín» y volvía a escribirlo en el siguiente rerun: el botón
+        # parecía no hacer nada.
         st.session_state[CLAVE] = dict(VACIO)
+        for k in ("f_ciu", "f_can", "f_ven"):
+            st.session_state.pop(k, None)
         st.rerun()
 
 
