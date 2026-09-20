@@ -36,6 +36,8 @@ GRUPOS = [
     ]),
     ("¿Quién nos deja plata?", [
         ("🏪  Rentabilidad por cuenta", "p21_cuentas"),
+        ("👥  Equipo comercial", "p22_equipo"),
+        ("🚚  Rutas y costo de servir", "p23_rutas"),
     ]),
     ("¿Quién compra y vuelve?", [
         ("🔁  Recompra y cohortes", "p05_recompra"),
@@ -56,11 +58,15 @@ GRUPOS = [
         ("📈  Proyección de cierre", "p18_proyeccion"),
         ("📦  Reposición y compras", "p17_reposicion"),
     ]),
+    ("¿Qué pasa si…?", [
+        ("🎛️  Simulador", "p25_simulador"),
+    ]),
     ("¿Qué se hace solo?", [
         ("⚙️  Automatizaciones", "p16_automatizaciones"),
         ("🔔  Alertas", "p19_alertas"),
     ]),
     ("Dirección", [
+        ("💬  Hilos del equipo", "p24_hilos"),
         ("📄  Reportes Automáticos", "p14_reportes"),
         ("🤖  Agente IA KYVA", "p15_agente"),
     ]),
