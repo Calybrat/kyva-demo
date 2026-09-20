@@ -3,7 +3,8 @@
 Para una distribuidora de licores la cartera no es un tema contable: es el
 negocio. Se le compra a la marca de contado o a 30 días y se le vende al bar a
 15, 30 o 45 según el canal, así que **cada peso que crece la venta amarra
-capital**. Crecer sin mirar esto es como una empresa rentable se queda sin caja.
+capital**. Crecer sin mirar esto es exactamente así como se queda sin caja una
+empresa rentable.
 
 La versión anterior de esta pantalla estimaba la cartera multiplicando la venta
 del mes por el plazo pactado. Un revisor del oficio la destrozó con una frase
@@ -39,14 +40,19 @@ import streamlit as st
 
 from utils.formatters import *
 from utils import b2b, estado, filtros, gerencia
+from utils.datos import CORTE
 
-# Bloqueo automático de despacho. Los 15 días no son un número redondo: es el
-# punto donde la probabilidad de cobro empieza a caer rápido (del 95% del primer
-# tramo al 82% del segundo) y todavía queda margen para arreglarlo con una
-# llamada. Con 30 se llega tarde; con 8 se bloquea a un cliente bueno que se
-# demoró por un puente festivo.
+# Los dos números de la regla NO se eligieron aquí: son los que ya están
+# escritos en AUT-06 («escala al comercial a los 5 días · bloquea nuevos pedidos
+# a crédito a los 15»). Si esta pantalla dijera otra cosa, el panel se
+# contradiría con su propio módulo de automatizaciones.
+#
+# Y son razonables por su cuenta: a los 15 la probabilidad de cobro empieza a
+# caer rápido (del 95% del primer tramo al 82% del segundo) y todavía queda
+# margen para arreglarlo con una llamada. Con 30 se llega tarde; con 8 se
+# bloquea a un cliente bueno que se demoró por un puente festivo.
 BLOQUEO_DIAS = 15
-AVISO_DIAS = BLOQUEO_DIAS - 5      # el vendedor se entera antes que el cliente
+AVISO_DIAS = 5                     # el vendedor se entera antes que el cliente
 
 
 def _ficha(c, plazo, atraso) -> str:

@@ -33,6 +33,12 @@ La referencia del sector para un distribuidor de licores con bodega propia es
 un fill rate de 95-98%. Por debajo de 95% se pierden cuentas; por encima de 98%
 casi siempre se está pagando con sobrestock —que es la misma plata, quieta en
 la bodega y venciéndose.
+
+**Esa referencia cuenta líneas, no pesos, y las dos cifras no dicen lo mismo.**
+Un fill rate de 98% por líneas convive con un 92% por valor, porque la línea
+que falla no es la pequeña: es el pedido grande. La pantalla muestra las dos
+juntas a propósito — presentar sola la de líneas es la versión favorecedora, y
+un COO hace esa división de cabeza en el primer minuto de la demo.
 """
 import numpy as np
 import pandas as pd
@@ -48,6 +54,11 @@ from utils import gerencia, b2b, filtros
 # ventana de esta pantalla se recorta igual hasta aquí.
 QUIEBRES_DESDE = "2026-03"
 
+# Las devoluciones sí tienen registro desde enero. La ventana de devoluciones es
+# distinta de la de quiebres y por eso se calcula aparte: mezclarlas daba un
+# ratio de devoluciones sobre una base de seis meses y un numerador de ocho.
+DEVOLUCIONES_DESDE = "2026-01"
+
 # Un pedido a un bar lleva del orden de once referencias distintas. Es el
 # denominador del fill rate y es la constante más delicada del módulo: la
 # tabla de quiebres SOLO guarda las líneas que fallaron, y dividir entre ellas
@@ -56,6 +67,28 @@ LINEAS_POR_ENTREGA = 11
 
 # Sano según el sector. La franja, no el punto: el 100% también es un problema.
 FILL_SANO = (95.0, 98.0)
+
+# Cada motivo de devolución también tiene un dueño, y son CINCO, no cuatro. El
+# quinto —«no rotó en el punto»— es el que más incomoda porque no es un error
+# de despacho: es mercancía que el vendedor colocó y el bar no vendió. Sin él,
+# el panel acusaba a Comercial por una cifra de la que solo explicaba la mitad.
+DUENO_DEVOLUCION = {
+    "Avería en transporte": (
+        "Logística", "Se arregla con estiba y ruta, no hablando con el cliente"),
+    "Producto vencido": (
+        "Compras", "No es una devolución: es un error de compra que se "
+        "descubrió seis meses tarde en la nevera del bar"),
+    "No rotó en el punto": (
+        "Comercial", "No se despachó mal: se colocó de más. El bar no lo "
+        "vendió y lo devolvió — se corrige surtiendo distinto, no despachando "
+        "distinto"),
+    "Pedido equivocado": (
+        "Comercial", "Es del vendedor y se corrige en el momento de tomar el "
+        "pedido"),
+    "Diferencia de precio": (
+        "Administración", "Ni siquiera es un problema de producto: es lista de "
+        "precios contra lo que el vendedor prometió"),
+}
 
 # Cada motivo de quiebre tiene un dueño. Sin esta tabla, la venta perdida es
 # un número que se comenta en comité y del que no sale ninguna tarea.
@@ -74,6 +107,29 @@ def _area(motivo: str) -> str:
     return DUENO_QUIEBRE.get(motivo, ("Sin asignar", ""))[0]
 
 
+def _ventana(meses) -> str:
+    """«mar 2026 – ago 2026». La ventana real, dicha en voz alta.
+
+    Esta pantalla abre en trimestre y el comité (p30) siempre lee doce meses.
+    Sin la ventana escrita al lado del número, las dos pantallas muestran la
+    misma venta perdida con cifras distintas y parece que una de las dos miente.
+    """
+    a, b = mes_es(min(meses)), mes_es(max(meses))
+    return a if a == b else f"{a} – {b}"
+
+
+def _color_fill(v: float) -> str:
+    """Rojo solo por debajo de la franja. Arriba de 98 es ámbar, no alarma.
+
+    Arriba de la franja el problema existe pero es de bodega, no de servicio:
+    pintarlo del mismo rojo que un 91% decía que fallarle al cliente y tener
+    stock de más son la misma emergencia, y no lo son.
+    """
+    if v < FILL_SANO[0]:
+        return ACENTO
+    return GOOD if v <= FILL_SANO[1] else WARN
+
+
 def _tabla_html(filas) -> str:
     """Filas etiqueta/valor sin el cromo de st.dataframe, para bloques cortos."""
     return '<table style="width:100%;border-collapse:collapse">' + "".join(
@@ -90,9 +146,16 @@ def render():
         "¿Qué nos cuesta fallar?"), unsafe_allow_html=True)
     filtros.encabezado_filtro()
 
-    q = filtros.aplicar(gerencia.quiebres())
-    d = filtros.aplicar(gerencia.devoluciones())
     ventas_per = filtros.aplicar(b2b.ventas())
+    # El recorte a QUIEBRES_DESDE va sobre las DOS tablas, no solo sobre
+    # ventas. Hoy `quiebres.csv` empieza en marzo y recortarlo no cambia nada,
+    # pero en cuanto entre una fila anterior el KPI la contaría y el gráfico la
+    # descartaría —el `.reindex` de abajo la deja fuera— y las dos cifras de la
+    # misma pantalla dejarían de cuadrar sin lanzar ningún error.
+    q = filtros.aplicar(gerencia.quiebres())
+    q = q[q["mes"] >= QUIEBRES_DESDE]
+    d = filtros.aplicar(gerencia.devoluciones())
+    d = d[d["mes"] >= DEVOLUCIONES_DESDE]
     # El denominador del fill rate solo puede contar meses con registro de
     # quiebres; si no, los meses viejos entran como si se hubiera servido todo.
     ve = ventas_per[ventas_per["mes"] >= QUIEBRES_DESDE]
@@ -113,12 +176,38 @@ def render():
     fill_mes = (1 - inc_mes / (lineas_mes + inc_mes)) * 100
     fill = float((1 - len(q) / (lineas_mes.sum() + len(q))) * 100)
 
+    # La ventana real de esta pantalla y cuántos meses tiene. Todo lo que se
+    # anualiza más abajo sale de aquí: el periodo por defecto es trimestre, no
+    # semestre, y clavar el factor rompía el número sin avisar.
+    meses_ventana = max(int(ve["mes"].nunique()), 1)
+    ventana_txt = _ventana(ve["mes"].unique())
+    factor_anual = 12 / meses_ventana
+
     perdido = float(q["valor_perdido"].sum())
-    dev_valor = float(d["valor"].sum())
-    # Las devoluciones arrancan en enero y los quiebres en marzo: el ratio se
-    # calcula solo sobre los meses que las dos tablas comparten, o queda inflado.
-    base_dev = float(ventas_per.loc[ventas_per["mes"].isin(d["mes"].unique()), "neto"].sum())
-    dev_pct = dev_valor / base_dev * 100 if base_dev else 0.0
+    neto_ventana = float(ve["neto"].sum())
+    # El mismo fill rate, medido en plata. Es la cifra que un COO calcula de
+    # cabeza —venta perdida sobre venta— y si la pantalla no la pone, la pone
+    # él y descubre que la versión que se le mostró era la favorecedora.
+    pedido_total = neto_ventana + perdido
+    fill_valor = float((1 - perdido / pedido_total) * 100) if pedido_total else 0.0
+
+    # Devoluciones: dos cifras distintas y las dos ciertas.
+    #
+    #   · `dev_total` es la nota crédito del ERP (la columna `devoluciones` de
+    #     ventas_cuenta_mes). Es la que resta la cascada de p21 y es LA cifra.
+    #   · `dev_clas` es la parte que además trae motivo y responsable, que es
+    #     lo único que se puede abrir y repartir.
+    #
+    # Mostrar solo la segunda hacía que p28 y p21 dieran totales distintos del
+    # mismo hecho sin que nada lo explicara. Y el ratio va contra la venta
+    # BRUTA: `neto` ya trae restadas las devoluciones, así que dividir entre él
+    # era dividir un número de devoluciones entre una base que ya restó otro.
+    vd = ventas_per[ventas_per["mes"] >= DEVOLUCIONES_DESDE]
+    dev_total = float(vd["devoluciones"].sum())
+    dev_clas = float(d["valor"].sum())
+    base_dev = float(vd["bruto"].sum())
+    dev_pct = dev_total / base_dev * 100 if base_dev else 0.0
+    dev_cob = dev_clas / dev_total * 100 if dev_total else 0.0
 
     # ── El costo oculto ─────────────────────────────────────────────────────
     # Se mide por CATEGORÍA, no por SKU, y es deliberado: el mesero no pide
@@ -128,19 +217,30 @@ def render():
     # veintiséis, que es lo que de verdad está pasando.
     q = q.copy()
     q["precio_implicito"] = q["valor_perdido"] / q["faltantes"].replace(0, np.nan)
+    # El valor de lo pedido se calcula LÍNEA A LÍNEA y después se suma. Antes
+    # se promediaba el precio del par y se multiplicaba por las unidades
+    # sumadas: con precios implícitos que van de $15 mil a $800 mil, un par que
+    # juntara una línea barata de mucho volumen con una cara de poco volumen
+    # salía con la exposición inflada. Ponderar bien cuesta una columna.
+    q["valor_pedido"] = q["pedidas"] * q["precio_implicito"]
     pares = q.groupby(["cuenta_id", "nombre", "canal", "ciudad", "vendedor",
                        "categoria"]).agg(
         fallas=("mes", "size"), meses=("mes", "nunique"),
         pedidas=("pedidas", "sum"), faltantes=("faltantes", "sum"),
         perdido=("valor_perdido", "sum"),
-        precio=("precio_implicito", "mean")).reset_index()
+        valor_pedido=("valor_pedido", "sum")).reset_index()
     riesgo = pares[pares["fallas"] >= 2].copy()
 
     prob = st.session_state.get("sv_prob", 40)
-    # Lo que esa cuenta nos pidió de esa categoría en los seis meses de
-    # registro, llevado a doce. No es lo que compró: es lo que pidió, que es
+    # Lo que esa cuenta nos pidió de esa categoría en la ventana con registro,
+    # llevado a doce meses. No es lo que compró: es lo que pidió, que es
     # exactamente lo que se va a pedir en otra parte.
-    riesgo["expuesto"] = riesgo["pedidas"] * riesgo["precio"] * 2
+    #
+    # El factor sale de la ventana, no de una constante. Estaba clavado en 2 —o
+    # sea, suponía siempre seis meses— y el periodo por defecto es TRIMESTRE:
+    # la exposición se anualizaba a seis meses y su tope a doce, y el «costo
+    # oculto» pasaba de $863 mil a $81 M según el periodo sin que nada lo dijera.
+    riesgo["expuesto"] = riesgo["valor_pedido"] * factor_anual
 
     # Tope de realidad: ninguna cuenta puede dejar de comprar más de lo que
     # compra. Sin este tope, dos pedidos grandes fallidos hacían que un club
@@ -159,26 +259,32 @@ def render():
     # ── KPIs ────────────────────────────────────────────────────────────────
     k = st.columns(4, gap="small")
     k[0].markdown(kpi(
-        "Fill rate", pct(fill),
-        f"{num(len(q))} líneas servidas incompletas",
+        "Fill rate por líneas", pct(fill),
+        f"Por valor: {pct(fill_valor)} · {num(len(q))} líneas incompletas",
         # Verde a partir de 95%: por encima de 98% el problema existe, pero es
         # sobrestock, no servicio, y pintarlo en rojo aquí confunde al que mira.
+        # El delta lleva la cifra por valor porque el verde no es toda la
+        # historia: por líneas se sirve 98% y por plata bastante menos.
         fill >= FILL_SANO[0], "📦",
-        "Porcentaje de líneas de pedido que salieron completas. Cada punto que "
-        "falta es un pedido que el cliente tuvo que completar en otro lado.",
-        "Sano en el sector: 95-98%"), unsafe_allow_html=True)
+        "Porcentaje de líneas de pedido que salieron completas. La de al lado "
+        "es la misma cuenta medida en pesos, y es más baja porque la línea que "
+        "falla es la grande.",
+        f"Sano en el sector: 95-98% · {ventana_txt}"), unsafe_allow_html=True)
     k[1].markdown(kpi(
         "Venta perdida", cop(perdido, 0),
         f"{num(q['faltantes'].sum())} unidades que se pidieron y no salieron",
         False, "🩸",
         "Valorizada al precio de la propia línea del pedido. No es una "
-        "proyección: es mercancía que el cliente ya había decidido comprar."),
+        "proyección: es mercancía que el cliente ya había decidido comprar.",
+        f"Ventana con registro: {ventana_txt}"),
         unsafe_allow_html=True)
     k[2].markdown(kpi(
-        "Devoluciones", cop(dev_valor, 0),
-        f"{pct(dev_pct, 2)} de la venta neta", dev_pct < 1.0, "↩️",
-        "Producto que volvió. Importa menos el total que quién lo causó: "
-        "transporte, bodega, compras y comercial son cuatro problemas distintos.",
+        "Devoluciones", cop(dev_total, 0),
+        f"{pct(dev_pct, 2)} de la venta bruta · {pct(dev_cob, 0)} con motivo "
+        f"registrado", dev_pct < 1.0, "↩️",
+        "La nota crédito completa del ERP, la misma que resta la cascada de "
+        "rentabilidad por cuenta. Abajo se abre la parte que trae motivo y "
+        "responsable, que es la única que se puede repartir.",
         "Sano en distribución: por debajo de 1%"), unsafe_allow_html=True)
     k[3].markdown(kpi(
         "Costo oculto", cop(costo_oculto, 0),
@@ -186,7 +292,8 @@ def render():
         False, "🕳️",
         f"Venta anual en riesgo de irse en silencio, con un supuesto de "
         f"{prob}% de abandono. El supuesto se ajusta abajo.",
-        "Nadie reclama: simplemente deja de pedir"), unsafe_allow_html=True)
+        "Exposición a 12 meses · no se suma a la venta perdida"),
+        unsafe_allow_html=True)
 
     st.markdown(espacio(18), unsafe_allow_html=True)
 
@@ -202,20 +309,27 @@ def render():
         fig.add_trace(go.Scatter(
             x=[mes_es(m) for m in fill_mes.index], y=fill_mes.values,
             mode="lines+markers+text", line=dict(color=PRIMARIO, width=2.6),
-            marker=dict(size=9, color=[GOOD if FILL_SANO[0] <= v <= FILL_SANO[1]
-                                       else ACENTO for v in fill_mes.values],
+            marker=dict(size=9,
+                        color=[_color_fill(v) for v in fill_mes.values],
                         line=dict(width=1.5, color="#fff")),
             text=[f"{v:.1f}%" for v in fill_mes.values],
             textposition="top center", textfont=dict(size=10, color=MUTED),
             hovertemplate="%{x}<br>Fill rate: %{y:.2f}%<extra></extra>"))
-        fig.update_yaxes(title="Líneas servidas completas (%)",
-                         range=[min(93, fill_mes.min() - 1.5), 100.4])
+        # El eje arranca justo debajo del piso de la franja, no en 93: con
+        # estos datos la serie vive entre 97 y 99 y un eje desde 93 dejaba la
+        # mitad del alto en blanco y la línea pegada al techo, plana.
+        fig.update_yaxes(
+            title="Líneas servidas completas (%)",
+            range=[min(FILL_SANO[0] - 0.5, float(fill_mes.min()) - 0.4),
+                   max(100.2, float(fill_mes.max()) + 0.5)])
         st.plotly_chart(light(fig, 330), use_container_width=True)
         st.caption(
             f"La franja verde es el 95-98% que el sector considera sano. "
-            f"**Arriba de 98% tampoco es gratis**: se sirve todo porque hay "
-            f"stock de más, y ese stock es la misma plata quieta en bodega. El "
-            f"promedio del periodo es **{pct(fill)}**.")
+            f"El punto va **rojo por debajo de 95%** —ahí se pierden cuentas— y "
+            f"**ámbar por encima de 98%**, que no es alarma sino aviso: se "
+            f"sirve todo porque hay stock de más, y ese stock es la misma plata "
+            f"quieta en bodega. El promedio del periodo es **{pct(fill)}** por "
+            f"líneas y **{pct(fill_valor)}** medido en pesos.")
 
     with c[1]:
         pm = q.groupby("mes")["valor_perdido"].sum().reindex(entregas.index).fillna(0)
