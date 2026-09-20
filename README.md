@@ -1,20 +1,32 @@
 # KYVA · Panel de Negocio
 
-Demo construido por **[Calybrat](https://calybrat.com)** para **KYVA**, la tienda
-online de licores, vinos y cervezas premium de Bogotá — «join the circle».
+Demo construido por **[Calybrat](https://calybrat.com)** para **KYVA**, la
+distribuidora de vinos, licores y cervezas premium de Bogotá y Medellín —
+«join the circle».
+
+> **Esta rama (`demo-alta-gerencia`) NO es el demo desplegado.** La versión en
+> `kyva-demo.streamlit.app` sale de `main`. Aquí el panel pasó de 15 pantallas
+> que explican a **33 que operan**: bandeja de decisiones, cartera factura por
+> factura, cuotas y rebate de las marcas, copiloto de pedidos, comité del lunes
+> con compromisos que sobreviven al refresco.
+>
+> Todo el detalle —cómo se construyó, qué encontró cada revisor y qué errores se
+> cometieron por el camino— está en **[`PLAN_ALTA_GERENCIA.md`](PLAN_ALTA_GERENCIA.md)**.
 
 No es una plantilla con el logo cambiado. Es un panel diseñado alrededor de cómo
-gana plata KYVA: cuatro canales con márgenes muy distintos (The Store, The Lounge,
-corporativo y distribución de marcas), una membresía Elite que casi siempre llega
-regalada por un aliado, un programa de referidos que es el propio lema de la marca,
-y una operación de despacho que cierra justo cuando más se compra licor.
+gana plata KYVA: los canales de on-premise que pesan —restaurantes, bares,
+discotecas y clubes sociales—, la tienda en línea y la membresía que casi
+siempre llega regalada por un aliado, los compromisos de sell-in con las marcas
+en exclusiva, y una operación de reparto donde una entrega cuesta lo mismo lleve
+cuatro botellas o cuarenta.
 
-La pregunta que atraviesa todo el panel es la que dejan las cifras públicas: **KYVA
-más que duplicó sus ingresos en 2024 y otra vez en 2025, y su margen operacional
-de 2025 fue 0,08%.** ¿Crecer le está dejando plata?
+La pregunta que atraviesa todo el panel es la que dejan las cifras públicas:
+**KYVA más que duplicó sus ingresos en 2024 y otra vez en 2025, y su margen
+operacional de 2025 fue 0,08%.** ¿Crecer le está dejando plata?
 
 ```bash
 pip install -r requirements.txt
+python3 pruebas.py          # las 33 pantallas cargan
 streamlit run app.py
 ```
 
