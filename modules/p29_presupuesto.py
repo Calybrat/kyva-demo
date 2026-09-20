@@ -105,8 +105,14 @@ def _forma_del_cierre(p: pd.DataFrame):
     hereda la estacionalidad pero no el crecimiento interanual, que sería
     justificarse a sí misma.
 
-    Devuelve (factores, hay_historia). Sin 2025 contra el cual medir —Medellín
-    abrió en marzo de 2026— se queda plana y la pantalla lo dice.
+    La forma se saca SIEMPRE de toda la operación, nunca del recorte filtrado:
+    la temporada es del calendario, no de la línea, y una línea chica no tiene
+    meses suficientes para tener estacionalidad propia. Con la de Discotecas ·
+    Bogotá —trece millones de compromiso en el año— el diciembre de 2025 salía
+    valiendo diez agostos y la proyección terminaba en 1.580% del compromiso.
+
+    Devuelve (factores, hay_historia). Sin 2025 contra el cual medir se queda
+    plana y la pantalla lo dice.
     """
     r = p[(p["mes"] >= "2025-01") & (p["mes"] <= "2025-12")].groupby("mes")["real"].sum()
     ago = float(r.get("2025-08", 0))
@@ -346,20 +352,28 @@ def render():
             f"presupuesto {nivel} dejó de ser un control: nadie tiene variable "
             f"en riesgo, ninguna línea está formalmente mal y por lo tanto "
             f"ninguna conversación de desempeño tiene sustento.")
-        if len(lin_ytd) > 1 and desv_total > 0:
+        # La mezcla solo se afirma cuando de verdad hay mezcla que mirar: con un
+        # filtro de canal puesto, motor y ancla colapsan en la misma línea y el
+        # párrafo se quedaba diciendo que aporta «100% de la desviación cargando
+        # 93% del compromiso», que no es un desbalance, es una sola línea.
+        share_motor = _div(motor["brecha"], desv_total) * 100
+        if (len(lin_ytd) > 1 and desv_total > 0
+                and motor["etiqueta"] != ancla["etiqueta"]
+                and share_motor > motor["peso"] + 10):
             cuerpo += (
                 f"<br><br>El problema no es el nivel, es la <b>mezcla</b>. "
                 f"<b>{motor['etiqueta']}</b> aporta {cop(motor['brecha'], 0)} "
-                f"de desviación positiva —{pct(_div(motor['brecha'], desv_total) * 100, 0)} "
-                f"de toda la del año— cargando {pct(motor['peso'], 0)} del "
-                f"compromiso: la línea que sostiene el año no es la línea a la "
-                f"que se le pidió el año. El caso extremo es "
-                f"<b>{extremo['etiqueta']}</b>, con "
-                f"{pct(extremo['peso'], 1)} del compromiso y "
-                f"{pct(extremo['cumplimiento'], 0)} de cumplimiento. Mientras "
-                f"tanto el {pct(ancla['peso'], 0)} del compromiso está puesto "
-                f"sobre <b>{ancla['etiqueta']}</b>, que va en "
-                f"{pct(ancla['cumplimiento'], 0)}.")
+                f"de desviación positiva —{pct(share_motor, 0)} de toda la del "
+                f"año— cargando {pct(motor['peso'], 0)} del compromiso: la "
+                f"línea que sostiene el año no es la línea a la que se le pidió "
+                f"el año. Mientras tanto el {pct(ancla['peso'], 0)} del "
+                f"compromiso está puesto sobre <b>{ancla['etiqueta']}</b>, que "
+                f"va en {pct(ancla['cumplimiento'], 0)}.")
+            if extremo["etiqueta"] not in (motor["etiqueta"], ancla["etiqueta"]):
+                cuerpo += (
+                    f" El caso extremo es <b>{extremo['etiqueta']}</b>: "
+                    f"{pct(extremo['peso'], 1)} del compromiso y "
+                    f"{pct(extremo['cumplimiento'], 0)} de cumplimiento.")
         if len(aprietan):
             ap = aprietan.iloc[0]
             if len(aprietan) == 1:
@@ -376,9 +390,14 @@ def render():
                 f"del año.")
         else:
             cuerpo += (
-                f"<br><br>Ninguna de las {len(lin_ytd)} líneas quedó debajo de "
-                f"su compromiso anual. No hay una sola conversación de "
-                f"desempeño que este presupuesto pueda sostener.")
+                "<br><br>"
+                + ("La única línea de este recorte quedó por encima de su "
+                   "compromiso anual. "
+                   if len(lin_ytd) == 1 else
+                   f"Ninguna de las {len(lin_ytd)} líneas quedó debajo de su "
+                   f"compromiso anual. ")
+                + "No hay una sola conversación de desempeño que este "
+                  "presupuesto pueda sostener.")
     st.markdown(panel(
         "Por qué este presupuesto ya no sirve para controlar nada",
         cuerpo +
@@ -594,7 +613,7 @@ def render():
     # sep–dic se reconstruyó sobre temporada alta; enfrentarlo contra «agosto
     # cuatro veces» producía un falso empate —101%, «sin margen»— que era del
     # método, no del negocio.
-    forma, hay_forma = _forma_del_cierre(p)
+    forma, hay_forma = _forma_del_cierre(gerencia.presupuesto())
     proy_mes = [real_mes * f for f in forma]
     proy = list(real_acum[-1] + np.cumsum(proy_mes))
 
@@ -638,7 +657,17 @@ def render():
           f"de hoy con la curva de fin de año entrega {cop(entrega_resto, 0)}: "
           f"**{pct(cumpl_resto, 0)}**."))
 
-    if cumpl_resto >= 115:
+    if not hay_forma:
+        titulo_cierre = "El cierre va sin temporada: es un piso, no un pronóstico"
+        primera = (
+            f"No hay un 2025 completo contra el cual medir la curva de fin de "
+            f"año, así que la proyección va plana —{mes_es(CORTE)} repetido "
+            f"cuatro veces—: el año termina en <b>{cop(cierre, 0)}</b>, "
+            f"{pct(cumpl_cierre, 0)} del compromiso, y los cuatro meses que "
+            f"quedan entregan {pct(cumpl_resto, 0)} de lo que piden. Léelo como "
+            f"un piso: el compromiso de sep–dic sí está armado sobre temporada "
+            f"alta y esta proyección no tiene con qué verla.")
+    elif cumpl_resto >= 115:
         titulo_cierre = "El año no se cierra: se cierra de sobra, y eso es el problema"
         primera = (
             f"Con la estacionalidad de 2025 aplicada al ritmo de "
@@ -659,20 +688,24 @@ def render():
             f"quedan piden {cop(exigido_resto, 0)} y el ritmo de hoy entrega "
             f"{pct(cumpl_resto, 0)} de eso: aquí sí hay que empujar.")
 
-    if not hay_forma:
-        primera += (
-            "<br><br><i>Sin 2025 contra el cual medir en este recorte, la "
-            "proyección va plana —agosto repetido cuatro veces— y por lo tanto "
-            "se queda corta: no tiene con qué ver la temporada.</i>")
+    # El párrafo del calendario solo tiene sentido con la forma de 2025 puesta:
+    # con la proyección plana, «sep–dic promedia más que ene–ago» no dice nada
+    # del calendario, dice que agosto fue más grande que el promedio del año.
+    if hay_forma:
+        calendario = (
+            f"Lo que sí cambia es el <b>calendario</b>: septiembre a diciembre "
+            f"promedia {cop(prom_resto, 0)} al mes contra "
+            f"{cop(prom_ene_ago, 0)} de enero a agosto"
+            + (f", y diciembre solo vale {cop(dic, 0)}" if dic > prom_ene_ago else "")
+            + ". ")
+    else:
+        calendario = ("De todas formas el calendario manda: noviembre y "
+                      "diciembre son los dos meses grandes del año en licores. ")
 
     st.markdown(panel(
         titulo_cierre,
-        primera +
-        f"<br><br>Lo que sí cambia es el <b>calendario</b>: septiembre a "
-        f"diciembre promedia {cop(prom_resto, 0)} al mes contra "
-        f"{cop(prom_ene_ago, 0)} de enero a agosto"
-        + (f", y diciembre solo vale {cop(dic, 0)}" if dic > prom_ene_ago else "")
-        + f". La consecuencia no es comercial, es de <b>inventario</b>: lo que "
+        primera + "<br><br>" + calendario
+        + f"La consecuencia no es comercial, es de <b>inventario</b>: lo que "
           f"se venda en diciembre hay que haberlo comprado en octubre, y una "
           f"importación tarda del orden de sesenta días. La decisión de cerrar "
           f"el año no se toma en diciembre — se toma ahora, con la orden de "
@@ -688,58 +721,103 @@ def render():
 
     # ── Las tres palancas ───────────────────────────────────────────────────
     va = v[v["mes"] == CORTE]
-    base_cuentas = filtros.aplicar(b2b.cuentas(), col_mes=None)
+    base_cuentas = filtros.aplicar(b2b.cuentas(), col_mes=None, ignorar=SIN_VENDEDOR)
     activas = int(va["cuenta_id"].nunique())
     dormidas = max(len(base_cuentas) - activas, 0)
-    ticket = _div(va["neto"].sum(), va["entregas"].sum())
-    frec = _div(va["entregas"].sum(), activas)
+    entregas_mes = float(va["entregas"].sum())
+    ticket = _div(va["neto"].sum(), entregas_mes)
+    frec = _div(entregas_mes, activas)
     por_cuenta = _div(va["neto"].sum(), activas)
 
     serie = v[v["mes"] >= INICIO_ANIO].groupby("mes")["cuenta_id"].nunique()
     pico = int(serie.max()) if len(serie) else activas
     mes_pico = str(serie.idxmax()) if len(serie) else CORTE
-    objetivo = max(falta_anual / max(len(RESTO), 1), abs(deuda_mes))
-    n_cuentas = objetivo / por_cuenta if por_cuenta else 0
+    mes_inicio = str(serie.index[0]) if len(serie) else INICIO_ANIO
+    objetivo = max(falta_anual / max(len(RESTO), 1), abs(deuda_mes), 0.0)
+
+    # Las tres palancas se miden por lo que hay que MOVERLAS, no por lo que
+    # traería moverlas un poco cada una: así son comparables. Antes la tercera
+    # se calculaba como «una entrega más por cada cuenta activa al ticket
+    # medio» —$213 M, casi el doble de la brecha— y dejaba la caja diciendo que
+    # la palanca más rápida sobraba sola mientras el cierre recomendaba otra.
+    #
+    # Medidas así las tres piden el MISMO porcentaje, y no es casualidad: la
+    # venta es cuentas × frecuencia × ticket, de modo que mover cualquiera de
+    # los tres factores un x% da el mismo x% de venta. Lo que las separa no es
+    # cuánta plata traen, es en cuánto tiempo y qué le hacen al margen.
+    mueve_pct = _div(objetivo, float(va["neto"].sum())) * 100
+    n_cuentas = _div(objetivo, por_cuenta)
+    alza_ticket = _div(objetivo, entregas_mes)
+    frec_extra = _div(_div(objetivo, ticket), activas)
     gana_ticket = real_mes * 0.10
-    gana_frec = activas * ticket
+    cubre_10 = _div(gana_ticket, objetivo) * 100
 
     # Con la base casi toda comprando, «despertar dormidas» deja de ser una
     # opción real y hay que decirlo: mandar al equipo a reactivar tres cuentas
     # cuando la brecha vale cien millones es perder el trimestre.
     saturada = dormidas <= max(len(base_cuentas) * 0.15, 1)
-    cuentas_txt = (
-        f"Solo {dormidas} de {len(base_cuentas)} cuentas de la base no "
-        f"compraron este mes: <b>la base está agotada</b>. Crecer en cuentas ya "
-        f"no es reactivar, es abrir, y eso es otro trabajo y otro plazo."
-        if saturada else
-        f"Quedan {dormidas} cuentas en la base sin compra este mes: despertar "
-        f"una cuenta conocida cuesta la mitad que abrir una nueva y entrega en "
-        f"la mitad del tiempo.")
+    if dormidas == 0:
+        cuentas_txt = (
+            f"Las {len(base_cuentas)} cuentas de la base compraron este mes: no "
+            f"queda una sola por despertar. Crecer en cuentas ya no es "
+            f"reactivar, es abrir, y eso es otro trabajo y otro plazo.")
+    elif saturada:
+        cuentas_txt = (
+            f"Solo {dormidas} de {len(base_cuentas)} cuentas de la base no "
+            f"{'compró' if dormidas == 1 else 'compraron'} este mes: <b>la base "
+            f"está agotada</b>. Crecer en cuentas ya no es reactivar, es abrir, "
+            f"y eso es otro trabajo y otro plazo.")
+    else:
+        cuentas_txt = (
+            f"Quedan {dormidas} cuentas en la base sin compra este mes: "
+            f"despertar una cuenta conocida cuesta la mitad que abrir una nueva "
+            f"y entrega en la mitad del tiempo.")
+
+    if objetivo <= 0:
+        st.markdown(panel(
+            "No hay brecha que cerrar en este recorte",
+            f"El compromiso anual de lo que está filtrado ya está cubierto y "
+            f"ninguna línea quedó debajo en {mes_es(CORTE)}, así que no hay una "
+            f"cifra mensual que repartir entre palancas. Quita el filtro para "
+            f"ver la aritmética sobre la operación completa.",
+            "🔧", "azul"), unsafe_allow_html=True)
+        return
 
     st.markdown(panel(
         "La brecha se cierra de tres maneras y ninguna tarda lo mismo",
-        f"Hacen falta <b>{cop(objetivo, 0)} al mes</b> para no depender del "
-        f"último trimestre. Con {activas} cuentas activas, {cop(por_cuenta)} por "
-        f"cuenta y {cop(ticket)} por entrega, la aritmética es ésta:<br><br>"
+        f"La brecha anual repartida en los cuatro meses que quedan son "
+        f"<b>{cop(objetivo, 0)} al mes</b>. "
+        + ("La curva de fin de año los entrega sola <i>si</i> la temporada "
+           "llega como el año pasado; estas tres palancas son lo que hay si no "
+           "llega, o si el año no se quiere jugar entero en noviembre y "
+           "diciembre. " if hay_forma and cumpl_resto >= 115 else
+           "Eso es lo que hay que sacar de más cada mes hasta diciembre. ")
+        + f"Con {activas} cuentas activas, "
+        f"{cop(por_cuenta)} por cuenta y {cop(ticket)} por entrega, cada una "
+        f"pide moverse <b>{pct(mueve_pct, 0)}</b>:<br><br>"
         f"<b>1. Más cuentas — {np.ceil(n_cuentas):.0f} cuentas nuevas.</b> "
         f"Es la palanca que sostuvo el año: las activas pasaron de "
-        f"{int(serie.iloc[0]) if len(serie) else activas} en enero a {pico} en "
-        f"{mes_es(mes_pico)}, y ahí se estancó — hoy son {activas}. "
-        f"{cuentas_txt} <i>Madura en 60 a 90 días</i>: prospecto, primera compra "
-        f"y recompra. Si la brecha es de este trimestre, llega tarde.<br>"
-        f"<b>2. Más ticket — {cop(gana_ticket, 0)} con subir 10%.</b> Se cobra en "
-        f"el <i>próximo pedido</i>: mezcla hacia referencias de mayor valor, "
+        f"{int(serie.iloc[0]) if len(serie) else activas} en "
+        f"{mes_es(mes_inicio)} a {pico} en {mes_es(mes_pico)}, y ahí se "
+        f"estancó — hoy son {activas}. {cuentas_txt} <i>Madura en 60 a 90 "
+        f"días</i>: prospecto, primera compra y recompra. Si la brecha es de "
+        f"este trimestre, llega tarde.<br>"
+        f"<b>2. Más ticket — {cop(alza_ticket)} más por entrega.</b> Se cobra "
+        f"en el <i>próximo pedido</i>: mezcla hacia referencias de mayor valor, "
         f"pedido mínimo, y menos descuento donde el margen lo aguante. Es la "
-        f"única palanca que actúa este mes, y también la que tiene techo — no se "
-        f"puede pedir dos trimestres seguidos.<br>"
-        f"<b>3. Más frecuencia — {cop(gana_frec, 0)} con una entrega más por "
-        f"cuenta.</b> Es la más rápida de todas y la única que <b>empeora el "
-        f"negocio</b>: cada entrega cuesta casi lo mismo lleve cuatro botellas o "
-        f"cuarenta, así que la venta sube y el margen servido baja. Hoy vamos en "
-        f"{num(frec, 1)} entregas por cuenta al mes.<br><br>"
-        f"<b>El orden correcto</b>: ticket ahora, para este trimestre; "
-        f"prospección nueva ahora también, pero contándola para el primer "
-        f"trimestre del año entrante, no para diciembre. Frecuencia solo donde "
-        f"el margen después de servir lo permita — y eso se mira en Rentabilidad "
-        f"por cuenta, no aquí.",
+        f"única que actúa este mes y la que tiene techo: subir el ticket un "
+        f"10% —lo máximo que aguanta un trimestre sin perder cuentas— son "
+        f"{cop(gana_ticket, 0)}, o sea {pct(cubre_10, 0)} de lo que falta. "
+        f"Sola no alcanza.<br>"
+        f"<b>3. Más frecuencia — {num(frec_extra, 2)} entregas más por cuenta "
+        f"al mes</b>, sobre las {num(frec, 1)} de hoy. Es la más rápida de "
+        f"todas y la única que <b>empeora el negocio</b>: cada entrega cuesta "
+        f"casi lo mismo lleve cuatro botellas o cuarenta, así que la venta sube "
+        f"y el margen servido baja.<br><br>"
+        f"<b>El orden correcto</b>: ticket ahora, porque es lo único que se "
+        f"cobra este mes, sabiendo que cubre {pct(cubre_10, 0)}; el resto, "
+        f"frecuencia y solo donde el margen después de servir lo aguante — eso "
+        f"se mira en <b>Rentabilidad por cuenta</b>, no aquí. Prospección "
+        f"nueva ahora también, pero contándola para el primer trimestre del año "
+        f"entrante, no para diciembre.",
         "🔧", "alerta"), unsafe_allow_html=True)

@@ -63,6 +63,7 @@ GRUPOS = [
         ("Simulador", "p25_simulador"),
     ]),
     ("¿Qué se hace solo?", [
+        ("Copiloto de pedidos", "p33_copiloto"),
         ("Automatizaciones", "p16_automatizaciones"),
         ("Alertas", "p19_alertas"),
     ]),

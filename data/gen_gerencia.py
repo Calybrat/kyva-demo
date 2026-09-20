@@ -78,15 +78,15 @@ MOTIVO_QUIEBRE = {
 # la pantalla. Un panel puede mostrar un hallazgo débil; no puede mostrar uno
 # que por construcción no existe.
 POP = [  # pieza, con qué frecuencia aparece, qué le hace a la rotación
-    ("Backbar iluminado",   .06, 1.40),
-    ("Nevera exhibidora",   .09, 1.34),
-    ("Menú de coctelería",  .11, 1.16),
-    ("Habladores de barra", .17, 1.10),
+    ("Backbar iluminado",   .06, 1.50),
+    ("Nevera exhibidora",   .09, 1.42),
+    ("Menú de coctelería",  .11, 1.20),
+    ("Habladores de barra", .17, 1.12),
     ("Cenefa",              .14, 1.02),
     # La pieza que no se defiende: cuesta como las demás y no mueve el estante.
     # Es el contraejemplo que impide leer «POP» como una sola cosa.
-    ("Copas de marca",      .13, 0.86),
-    ("Ninguno",             .30, 0.78),
+    ("Copas de marca",      .13, 0.76),
+    ("Ninguno",             .30, 0.74),
 ]
 COMPETENCIA = [
     ("Ninguna",                   .38, 1.06),
@@ -398,7 +398,9 @@ def gen_punto_venta(cuentas, catalogo, ventas):
         # precios distintos en dos barras de la misma zona.
         postura = float(rng.uniform(0.86, 1.16))
         cadencia = 30 / max(float(c["frec_visita_mes"]), 0.1)
-        visita = int(np.clip(round(cadencia * rng.uniform(0.5, 2.2)), 2, 110))
+        # La mayoría de la red entra más o menos cuando debe; el módulo vive de
+        # la cola larga, no de que todo el mundo esté fuera de ruta.
+        visita = int(np.clip(round(cadencia * rng.uniform(0.35, 1.75)), 2, 110))
         refs = top.sample(int(rng.integers(3, 9)),
                           random_state=int(rng.integers(1_000_000_000)))
         for j, (_, p) in enumerate(refs.iterrows()):
