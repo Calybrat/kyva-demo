@@ -414,16 +414,20 @@ CSS = f"""
   div[data-testid="stMetricValue"] {{ color:{TINTA}; }}
 
   .stDataFrame {{ border-radius:12px; overflow:hidden; border:1px solid {BORDER}; }}
-  div[data-baseweb="select"] > div {{ background:{SURF} !important;
+  /* En 1.60 el selectbox pasó de BaseWeb a React Aria: se acota por el
+     testid del widget, que es estable. */
+  [data-testid="stSelectbox"] div[role="button"] {{ background:{SURF} !important;
       border-color:{BORDER} !important; border-radius:10px !important; }}
-  div[data-baseweb="select"] span {{ color:{TINTA} !important; }}
+  [data-testid="stSelectbox"] div[role="button"] span {{ color:{TINTA} !important; }}
+  /* multiselect es uno de los DOS widgets que siguen en BaseWeb en 1.60, así
+     que esto sigue funcionando — y es el selector más frágil del archivo. */
   .stMultiSelect span[data-baseweb="tag"] {{ background:{PRIMARIO} !important; color:#fff !important; }}
   .stMultiSelect span[data-baseweb="tag"] span {{ color:#fff !important;
       -webkit-text-fill-color:#fff !important; }}
   button[kind="primary"] {{ background:{PRIMARIO} !important; border:none !important;
       border-radius:999px !important; font-weight:600 !important; }}
 
-  .stTabs [data-baseweb="tab"] {{ background:{SURF2}; border-radius:11px 11px 0 0;
+  .stTabs [data-testid="stTab"] {{ background:{SURF2}; border-radius:11px 11px 0 0;
       font-weight:600; color:{MUTED}; font-size:13px; font-family:Montserrat,sans-serif; }}
   .stTabs [aria-selected="true"] {{ background:{SURF} !important; color:{TINTA} !important;
       border-bottom:2px solid {ACENTO}; }}
@@ -558,11 +562,16 @@ section[data-testid="stSidebar"] button[data-testid="stBaseButton-primary"] {{
 }}
 
 /* ── Controles ──────────────────────────────────────────────────────────── */
-div[data-baseweb="select"] > div {{
-  border-color:var(--linea) !important; border-radius:8px !important;
-  min-height:36px; transition:border-color var(--t);
+/* Los desplegables. En 1.60 ya no son BaseWeb sino React Aria, así que se
+   acotan por el testid del widget, que sí es estable. `data-baseweb` seguía
+   escrito aquí y no aplicaba absolutamente nada — un selector CSS que no
+   matchea falla en silencio, y por eso duró tanto. */
+[data-testid="stSelectbox"] div[role="button"],
+[data-testid="stSelectbox"] input {{
+  border-radius:8px !important; min-height:36px;
+  transition:border-color var(--t), box-shadow var(--t);
 }}
-div[data-baseweb="select"]:focus-within > div {{
+[data-testid="stSelectbox"]:focus-within div[role="button"] {{
   border-color:{ACENTO} !important;
   box-shadow:0 0 0 3px rgba(206,98,100,.12) !important;
 }}
@@ -570,6 +579,14 @@ label, .stSelectbox label, .stSlider label {{
   font:700 10px/1.3 Montserrat,sans-serif !important; letter-spacing:.13em !important;
   text-transform:uppercase; color:{CLARO} !important; margin-bottom:5px !important;
 }}
+
+/* La barra superior de Streamlit con el botón «Deploy» y el menú de
+   hamburguesa es lo que más delata la herramienta. Los demos pulidos de la
+   propia Streamlit la esconden. */
+header[data-testid="stHeader"] {{
+  height:0 !important; min-height:0 !important; background:transparent !important;
+}}
+[data-testid="stToolbar"] {{ display:none !important; }}
 
 /* ── Cifras en columna ──────────────────────────────────────────────────── */
 /* Sin esto el ojo tiene que recalcular en cada fila: los dígitos de distinto
