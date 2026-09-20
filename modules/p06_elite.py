@@ -54,7 +54,7 @@ def render():
                 fig.add_bar(x=[mes_es(x) for x in g.index], y=g[o], name=o, marker_color=colores[o])
         fig.update_layout(barmode="stack")
         st.plotly_chart(light(fig, 350, "Miembros nuevos por mes, según cómo llegaron"),
-                        use_container_width=True)
+                        width="stretch", theme=None, config=PLOTLY_CONFIG)
     with g2:
         act = m.groupby("origen")["compro"].mean() * 100
         fig = go.Figure(go.Bar(x=act.index, y=act.values,
@@ -62,7 +62,7 @@ def render():
                                text=[pct(v, 0) for v in act.values], textposition="outside"))
         fig.update_layout(yaxis=dict(ticksuffix="%", range=[0, 105]))
         st.plotly_chart(light(fig, 350, "Estrenaron la membresía, por origen"),
-                        use_container_width=True)
+                        width="stretch", theme=None, config=PLOTLY_CONFIG)
 
     # ── Elite vs Classic ─────────────────────────────────────────────────────
     st.markdown("##### Un miembro Elite frente a un cliente de The Store")

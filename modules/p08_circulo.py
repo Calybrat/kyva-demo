@@ -54,7 +54,7 @@ def render():
                                   marker=dict(color=[PALIDO, CLARO, PRIMARIO])))
         fig.update_layout(hovermode="closest")
         st.plotly_chart(light(fig, 330, "El embudo de los últimos 12 meses"),
-                        use_container_width=True)
+                        width="stretch", theme=None, config=PLOTLY_CONFIG)
     with g2:
         mm = mc[mc["mes"] >= "2024-01"]
         fig = go.Figure()
@@ -66,7 +66,7 @@ def render():
                         line=dict(color=ACENTO, width=2.5))
         fig.update_layout(yaxis2=dict(overlaying="y", side="right", ticksuffix="%",
                                       showgrid=False, rangemode="tozero"))
-        st.plotly_chart(light(fig, 330, "Mes a mes"), use_container_width=True)
+        st.plotly_chart(light(fig, 330, "Mes a mes"), width="stretch", theme=None, config=PLOTLY_CONFIG)
 
     st.markdown(panel(
         "El círculo lo mueve poca gente",
@@ -88,5 +88,5 @@ def render():
     lista.columns = ["Cliente anfitrión", "Referidos que compraron", "Tipo", "Zona", "Pedidos propios"]
     with st.expander("Los 12 anfitriones que más han traído"):
         st.dataframe(lista, hide_index=True, width="stretch")
-    st.caption("Reglas del programa según kyva.co/faq. Valor del cupón ($25.000) y cifras "
-               "simuladas con fines de demostración.")
+    st.caption(md("Reglas del programa según kyva.co/faq. Valor del cupón ($25.000) y cifras "
+               "simuladas con fines de demostración."))

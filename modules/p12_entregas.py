@@ -60,14 +60,14 @@ def render():
                           line=dict(color=ACENTO, width=1.5), fillcolor="rgba(0,0,0,0)")
         fig.update_layout(yaxis=dict(autorange="reversed"), hovermode="closest")
         st.plotly_chart(light(fig, 360, "Cuándo compran (color) contra cuándo se despacha (recuadro)"),
-                        use_container_width=True)
+                        width="stretch", theme=None, config=PLOTLY_CONFIG)
     with g2:
         fig = go.Figure(go.Bar(
             x=ORDEN, y=v["cancelacion"], marker_color=[COLOR_V[o] for o in ORDEN],
             text=[pct(x) for x in v["cancelacion"]], textposition="outside"))
         fig.update_layout(yaxis=dict(ticksuffix="%", title="Pedidos cancelados"))
         st.plotly_chart(light(fig, 360, "Cancelación según cuánto esperó el pedido"),
-                        use_container_width=True)
+                        width="stretch", theme=None, config=PLOTLY_CONFIG)
 
     # ── Zonas ────────────────────────────────────────────────────────────────
     ok = p12[p12["estado"] == "Entregado"]

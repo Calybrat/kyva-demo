@@ -217,24 +217,77 @@ def light(fig: go.Figure, height: int = 340, title: str = "", moneda: bool = Fal
             legend = dict()
         margin = dict(l=6, r=30, t=44 if title else 16, b=base_b)
 
+    # `hovermode="x unified"` estaba puesto para todo, y en una barra horizontal
+    # agrupa por el eje equivocado: junta valores que no tienen nada que ver.
+    # En una dona directamente no significa nada.
+    horizontal = any(getattr(tr, "orientation", None) == "h" for tr in fig.data)
+    modo_hover = "closest" if is_pie else ("y unified" if horizontal else "x unified")
+
     fig.update_layout(
         title=dict(text=title, font=dict(size=14, color=TINTA,
                                          family="Montserrat, sans-serif"),
                    x=0, xanchor="left"),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="'Source Sans Pro', -apple-system, system-ui, sans-serif",
+        # La familia que SÍ está cargada. Antes decía 'Source Sans Pro' pero el
+        # @import trae 'Source Sans 3': los ejes se renderizaban con una fuente
+        # de reserva distinta a la de la interfaz, y se notaba en cada gráfico.
+        font=dict(family="'Source Sans 3', -apple-system, system-ui, sans-serif",
                   color=MUTED, size=12),
         separators=",.",
         height=height, margin=margin, legend=legend, showlegend=show_legend,
-        hovermode="x unified", colorway=PALETTE,
+        hovermode=modo_hover, colorway=PALETTE,
+        # Barras delgadas: la barra nunca llena su ranura. Es la diferencia
+        # entre un gráfico de hoja de cálculo y uno compuesto.
+        bargap=0.42, bargroupgap=0.12,
+        hoverlabel=dict(bgcolor="#FFFFFF", bordercolor=BORDER, align="left",
+                        font=dict(family="'Source Sans 3', sans-serif",
+                                  size=12.5, color=TINTA)),
+        dragmode=False,
     )
-    fig.update_xaxes(showgrid=False, linecolor=BORDER, tickfont=dict(color=MUTED))
+    fig.update_xaxes(showgrid=False, showline=False, zeroline=False,
+                     ticks="outside", ticklen=4, tickcolor="rgba(0,0,0,0)",
+                     tickfont=dict(color=MUTED, size=11.5), automargin=True)
     if not is_pie and n_cat > 14:
         fig.update_xaxes(nticks=9)
-    fig.update_yaxes(gridcolor="#EEEBF1", zeroline=False, tickfont=dict(color=MUTED))
-    fig.update_traces(cliponaxis=False, selector=dict(type="bar"))
+    fig.update_yaxes(showgrid=True, gridcolor="#EFEDF2", gridwidth=1,
+                     showline=False, zeroline=False,
+                     tickfont=dict(color=MUTED, size=11.5), automargin=True)
+    # El hueco de 2px entre segmentos apilados no es un borde decorativo: es una
+    # línea del color de la superficie, que es como se consigue en Plotly.
+    fig.update_traces(cliponaxis=False, marker_line_color=SURF,
+                      marker_line_width=1.5, selector=dict(type="bar"))
+    if is_pie:
+        fig.update_traces(hole=0.62, marker_line_color=SURF, marker_line_width=2,
+                          selector=dict(type="pie"))
     return fig
+
+
+# La barra flotante de Plotly es la firma visual más delatora que tiene un
+# panel: aparece al pasar el mouse con el logo, el zoom y «download plot as
+# png». Ningún producto real la muestra.
+PLOTLY_CONFIG = {"displayModeBar": False, "displaylogo": False,
+                 "scrollZoom": False, "doubleClick": False,
+                 "showTips": False}
+
+
+def grafico(fig, altura=340, moneda=False, titulo=""):
+    """Dibuja una figura ya tematizada. Úsese en vez de st.plotly_chart.
+
+    Dos cosas que hace y que a mano se olvidan siempre:
+
+      · `theme=None` — sin esto Streamlit repinta su propio tema ENCIMA del que
+        acabamos de aplicar, y el resultado es una mezcla de los dos.
+      · `config` — esconde la modebar.
+
+    El título va como encabezado de sección ANTES del gráfico, no dentro de la
+    figura: dentro usa la tipografía de Plotly y no la del producto.
+    """
+    import streamlit as st
+    if titulo:
+        st.markdown(f'<div class="ky-sub">{titulo}</div>', unsafe_allow_html=True)
+    return st.plotly_chart(light(fig, altura, moneda=moneda), width="stretch",
+                           theme=None, config=PLOTLY_CONFIG)
 
 
 dark = light
@@ -248,23 +301,33 @@ def kpi(label: str, value: str, delta: str = "", delta_good: bool = True,
     `referencia` dice contra qué comparar ("Sano en retail: 20–25%") y `ayuda`
     explica en una línea qué significa. Un número solo no le sirve a nadie.
     """
+    # El parámetro `icon` se conserva por compatibilidad —lo pasan las 27
+    # pantallas— pero YA NO SE DIBUJA. Un emoji distinto por tarjeta viene de
+    # una familia tipográfica distinta, renderiza diferente en Mac y en
+    # Windows, y mete color saturado fuera de la paleta. Es la marca más
+    # reconocible de un panel generado por IA. Para volver a mostrarlos, basta
+    # con descomentar `icon_html` abajo.
     color = GOOD if delta_good else BAD
-    delta_html = (f'<p style="font-size:12px;font-weight:700;color:{color};'
-                  f'margin:5px 0 0">{delta}</p>' if delta else "")
-    icon_html = (f'<div style="font-size:19px;margin-bottom:6px;line-height:1">'
-                 f'{icon}</div>' if icon else "")
-    ref_html = (f'<p style="font-size:10.5px;color:{ACENTO};margin:6px 0 0;'
-                f'font-weight:700;font-style:italic">{referencia}</p>' if referencia else "")
-    ayuda_html = (f'<p style="font-size:11px;color:{MUTED};margin:6px 0 0;'
-                  f'line-height:1.4">{ayuda}</p>' if ayuda else "")
+    delta_html = (f'<p style="font-size:12px;font-weight:600;color:{color};'
+                  f'margin:6px 0 0">{delta}</p>' if delta else "")
+    ref_html = (f'<p style="font-size:10.5px;color:{ACENTO};margin:7px 0 0;'
+                f'font-weight:600">{referencia}</p>' if referencia else "")
+    ayuda_html = (f'<p style="font-size:11px;color:{MUTED};margin:7px 0 0;'
+                  f'line-height:1.45">{ayuda}</p>' if ayuda else "")
+    # `height:100%` en la tarjeta no bastaba: los hijos de stColumn no se
+    # estiran si no se les dice, y las cuatro quedaban con el borde inferior
+    # desparejo cuando los textos de ayuda tenían largos distintos. El arreglo
+    # de verdad está en CSS_PRODUCTO; aquí se completa con flex.
     return f"""
-    <div style="background:{SURF};border:1px solid {BORDER};border-radius:16px;
-      padding:15px 16px;height:100%;box-shadow:0 1px 3px rgba(14,17,58,.05)">
-      {icon_html}
-      <p style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+    <div class="ky-kpi" style="background:{SURF};border:1px solid {BORDER};
+      border-radius:12px;padding:16px 18px;height:100%;
+      display:flex;flex-direction:column;
+      box-shadow:0 1px 2px rgba(14,17,58,.04)">
+      <p style="font-size:10px;letter-spacing:.13em;text-transform:uppercase;
         color:{MUTED};margin:0;font-weight:700;font-family:Montserrat,sans-serif">{label}</p>
-      <p style="font-size:25px;font-weight:700;color:{TINTA};margin:5px 0 0;
-        letter-spacing:-.4px;line-height:1.15;font-family:Montserrat,sans-serif">{value}</p>
+      <p style="font-size:28px;font-weight:600;color:{TINTA};margin:7px 0 0;
+        letter-spacing:-.02em;line-height:1.08;font-family:Montserrat,sans-serif;
+        font-variant-numeric:tabular-nums">{value}</p>
       {delta_html}{ref_html}{ayuda_html}
     </div>"""
 
@@ -279,7 +342,7 @@ def panel(titulo: str, cuerpo_html: str, icono: str = "", tono: str = "azul") ->
     <div style="background:{fondo};border:1px solid {borde};border-radius:16px;
       padding:16px 19px;margin:6px 0 2px">
       <p style="font-size:13.5px;font-weight:700;color:{TINTA};margin:0 0 8px;
-        font-family:Montserrat,sans-serif">{icono} {titulo}</p>
+        font-family:Montserrat,sans-serif"></p>
       <div style="font-size:13.5px;color:#3E4260;margin:0;line-height:1.7">
         {cuerpo_html}</div>
     </div>"""
@@ -402,3 +465,152 @@ def encabezado(titulo: str, subtitulo: str, eyebrow: str = "Panel de negocio") -
         {motivo_svg(PALIDO, 38)}{motivo_svg(CLARO, 26)}{motivo_svg(ACENTO, 16)}
       </div>
     </div><div class="ky-rule"></div>"""
+
+# ── Correcciones de diseño ───────────────────────────────────────────────────
+# Sale de una auditoría de dirección de diseño. Va al final del CSS a propósito:
+# gana por orden en la cascada sin tener que subir especificidad a golpe de
+# !important en las reglas de arriba.
+CSS_PRODUCTO = f"""
+<style>
+:root {{ --t:120ms cubic-bezier(.2,0,.2,1); --linea:#E9E5EE; --linea-fuerte:#D9D3DF; }}
+
+/* Las cuatro tarjetas de KPI quedaban con el borde inferior desparejo cuando
+   los textos de ayuda tenían largos distintos. `height:100%` en la tarjeta no
+   basta: los hijos de stColumn no se estiran si no se les dice. */
+[data-testid="stHorizontalBlock"] {{ align-items:stretch; }}
+[data-testid="stColumn"] > div,
+[data-testid="stColumn"] [data-testid="stVerticalBlock"] {{ height:100%; }}
+
+/* El foco de teclado era el azul por defecto de Streamlit, que no es de la
+   marca. Y nunca outline:none — deja la app inutilizable sin ratón. */
+:focus-visible {{ outline:2px solid {ACENTO}; outline-offset:2px; border-radius:4px; }}
+::selection {{ background:rgba(206,98,100,.2); color:{TINTA}; }}
+
+/* ── Navegación ───────────────────────────────────────────────────────────
+   El selector `button[kind="primary"]` que había en el CSS es código muerto
+   desde Streamlit 1.35: el DOM ahora usa data-testid. Se ponen los dos para
+   cubrir ambas versiones. */
+section[data-testid="stSidebar"] [data-testid="stButton"] > button {{
+  background:transparent !important; border:none !important;
+  border-left:2px solid transparent !important; border-radius:0 7px 7px 0 !important;
+  padding:6px 12px 6px 14px !important; min-height:0 !important;
+  justify-content:flex-start !important;
+  font:500 12.5px/1.35 Montserrat,sans-serif !important; letter-spacing:-.01em;
+  color:rgba(229,225,230,.62) !important; box-shadow:none !important;
+  transition:background var(--t), color var(--t), border-color var(--t);
+}}
+section[data-testid="stSidebar"] [data-testid="stButton"] > button p,
+section[data-testid="stSidebar"] [data-testid="stButton"] > button div,
+section[data-testid="stSidebar"] [data-testid="stButton"] > button span,
+section[data-testid="stSidebar"] [data-testid="stButton"] > button * {{
+  text-align:left !important; width:100% !important; margin:0 !important;
+  justify-content:flex-start !important;
+}}
+section[data-testid="stSidebar"] [data-testid="stButton"] > button:hover {{
+  background:rgba(229,225,230,.07) !important; color:#F3F1F4 !important;
+  border-left-color:rgba(229,225,230,.3) !important;
+}}
+section[data-testid="stSidebar"] button[kind="primary"],
+section[data-testid="stSidebar"] button[data-testid="stBaseButton-primary"] {{
+  background:rgba(206,98,100,.16) !important;
+  border-left:2px solid {ACENTO} !important;
+  color:#FFFFFF !important; font-weight:600 !important;
+}}
+
+/* ── Botones del cuerpo ──────────────────────────────────────────────────── */
+[data-testid="stMain"] button[kind="primary"],
+[data-testid="stMain"] button[data-testid="stBaseButton-primary"] {{
+  background:{ACENTO} !important; border:1px solid {ACENTO} !important;
+  color:#fff !important; border-radius:999px !important;
+  font:600 12.5px Montserrat,sans-serif !important; box-shadow:none !important;
+  transition:background var(--t), transform var(--t);
+}}
+[data-testid="stMain"] button[kind="primary"]:hover,
+[data-testid="stMain"] button[data-testid="stBaseButton-primary"]:hover {{
+  background:#BC5052 !important; transform:translateY(-1px);
+}}
+[data-testid="stMain"] button[kind="secondary"],
+[data-testid="stMain"] button[data-testid="stBaseButton-secondary"] {{
+  background:transparent !important; border:1px solid var(--linea-fuerte) !important;
+  color:{TINTA} !important; border-radius:999px !important;
+  font:600 12.5px Montserrat,sans-serif !important;
+}}
+
+/* ── Controles ──────────────────────────────────────────────────────────── */
+div[data-baseweb="select"] > div {{
+  border-color:var(--linea) !important; border-radius:8px !important;
+  min-height:36px; transition:border-color var(--t);
+}}
+div[data-baseweb="select"]:focus-within > div {{
+  border-color:{ACENTO} !important;
+  box-shadow:0 0 0 3px rgba(206,98,100,.12) !important;
+}}
+label, .stSelectbox label, .stSlider label {{
+  font:700 10px/1.3 Montserrat,sans-serif !important; letter-spacing:.13em !important;
+  text-transform:uppercase; color:{CLARO} !important; margin-bottom:5px !important;
+}}
+
+/* ── Cifras en columna ──────────────────────────────────────────────────── */
+/* Sin esto el ojo tiene que recalcular en cada fila: los dígitos de distinto
+   ancho desalinean la coma y comparar dos filas deja de ser instantáneo. */
+[data-testid="stDataFrame"], .ky-num, .ky-tabla .num {{
+  font-variant-numeric:tabular-nums; font-feature-settings:"tnum";
+}}
+
+/* La toolbar de cada elemento (los tres puntos, descargar, pantalla completa)
+   flotaba siempre visible. Aparece solo al pasar por encima. */
+[data-testid="stElementToolbar"] {{ opacity:0; transition:opacity var(--t); }}
+[data-testid="stElementContainer"]:hover [data-testid="stElementToolbar"] {{ opacity:1; }}
+
+/* Tarjetas: una sola elevación en todo el producto, apenas perceptible. */
+.ky-card, .ky-kpi {{ transition:box-shadow var(--t), border-color var(--t),
+                     transform var(--t); }}
+.ky-card:hover, .ky-kpi:hover {{
+  box-shadow:0 2px 6px rgba(14,17,58,.07), 0 1px 2px rgba(14,17,58,.04);
+  border-color:var(--linea-fuerte); transform:translateY(-1px);
+}}
+
+/* Encabezado de sección: versalitas con hairline, no un <b> suelto. */
+.ky-sub {{
+  font:600 12px/1.2 Montserrat,sans-serif !important; letter-spacing:.09em !important;
+  text-transform:uppercase; color:{CLARO} !important;
+  margin:0 0 11px !important; padding-bottom:8px;
+  border-bottom:1px solid var(--linea);
+}}
+</style>
+"""
+
+
+def anillo(p: float, color=ACENTO, ancho: int = 22, fondo=PALIDO) -> str:
+    """El círculo del logo, convertido en medidor.
+
+    «Join the circle» deja de ser una frase del sidebar y pasa a ser el lenguaje
+    de estado del producto: el anillo se llena con el avance y se cierra cuando
+    la bandeja queda en cero. Es gratis, es de la marca, y ningún otro panel lo
+    tiene.
+    """
+    r = ancho / 2 - 2
+    c = 2 * 3.14159265 * r
+    p = max(0.0, min(1.0, float(p)))
+    return (f'<svg width="{ancho}" height="{ancho}" viewBox="0 0 {ancho} {ancho}" '
+            f'style="vertical-align:middle;transform:rotate(-90deg);flex:none">'
+            f'<circle cx="{ancho/2}" cy="{ancho/2}" r="{r:.1f}" fill="none" '
+            f'stroke="{fondo}" stroke-width="2.5"/>'
+            f'<circle cx="{ancho/2}" cy="{ancho/2}" r="{r:.1f}" fill="none" '
+            f'stroke="{color}" stroke-width="2.5" stroke-linecap="round" '
+            f'stroke-dasharray="{c*p:.1f} {c:.1f}"/></svg>')
+
+
+def md(texto: str) -> str:
+    r"""Escapa el signo de peso para texto de Markdown plano.
+
+    Streamlit interpreta `$...$` como LaTeX. Una frase con DOS importes
+    —«de $384 M en juego, $0 están asignados»— se renderiza como una fórmula
+    matemática y el texto sale ilegible. Pasó en producción y se ve feo de
+    inmediato.
+
+    Solo hace falta en `st.caption`, `st.write` y `st.markdown` SIN
+    `unsafe_allow_html`. Dentro de HTML el `\$` saldría literal, así que ahí
+    NO se usa.
+    """
+    return str(texto).replace("$", r"\$")

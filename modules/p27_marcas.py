@@ -160,7 +160,7 @@ def render():
     fig.add_hline(y=100, line_width=1.5, line_color=TINTA,
                   annotation_text="cuota", annotation_position="right")
     fig.update_yaxes(title="Cumplimiento (%)")
-    st.plotly_chart(light(fig, 320), use_container_width=True)
+    st.plotly_chart(light(fig, 320), width="stretch", theme=None, config=PLOTLY_CONFIG)
 
     casi = h[h["perdido"] > 0].sort_values("perdido", ascending=False)
     if len(casi):
@@ -180,12 +180,12 @@ def render():
                      "Lo que costó"]
         st.dataframe(t, hide_index=True, width="stretch")
         peor_caso = casi.iloc[0]
-        st.caption(
+        st.caption(md(
             f"El peor: **{peor_caso['marca']}** en {peor_caso['trimestre']} cerró en "
             f"{peor_caso['cumplimiento']:.1f}% y le faltaron "
             f"**{int(peor_caso['faltan_para_siguiente'])} unidades** para el siguiente "
             f"escalón. Esas unidades valían **{cop(peor_caso['perdido'], 0)}**. "
-            f"Con una alerta a quince días del cierre eso no vuelve a pasar.")
+            f"Con una alerta a quince días del cierre eso no vuelve a pasar."))
 
     st.markdown(espacio(16), unsafe_allow_html=True)
 
@@ -205,7 +205,7 @@ def render():
                       "<br>%{customdata[1]:.1f}% de lo vendido"
                       "<br>Costo: %{y:,.0f}<extra></extra>"))
     fig2.update_yaxes(title="Costo de la bonificación · 12 meses")
-    st.plotly_chart(light(fig2, 280, moneda=True), use_container_width=True)
+    st.plotly_chart(light(fig2, 280, moneda=True), width="stretch", theme=None, config=PLOTLY_CONFIG)
 
     st.markdown(panel(
         "Por qué esto no aparece en ningún informe",

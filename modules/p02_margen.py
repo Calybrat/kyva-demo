@@ -75,7 +75,7 @@ def render():
         connector=dict(line=dict(color=BORDER))))
     fig.update_layout(yaxis=dict(showticklabels=False), showlegend=False)
     st.plotly_chart(light(fig, 420, f"Un pedido promedio de {canal}, peso por peso"),
-                    use_container_width=True)
+                    width="stretch", theme=None, config=PLOTLY_CONFIG)
 
     # ── Comparación de canales ───────────────────────────────────────────────
     st.markdown("##### Los cuatro canales, lado a lado")
@@ -91,7 +91,7 @@ def render():
                       yaxis=dict(autorange="reversed"))
     col1, col2 = st.columns([1.3, 1], gap="medium")
     with col1:
-        st.plotly_chart(light(fig, 330, "Porcentaje del ingreso"), use_container_width=True)
+        st.plotly_chart(light(fig, 330, "Porcentaje del ingreso"), width="stretch", theme=None, config=PLOTLY_CONFIG)
     with col2:
         tabla = pd.DataFrame({
             "Canal": t["canal"],

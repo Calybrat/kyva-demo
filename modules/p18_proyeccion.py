@@ -139,7 +139,7 @@ def render():
         line=dict(color=ACENTO, width=2.5, dash="dot"), marker=dict(size=6),
         hovertemplate="%{x|%b %Y}: %{y:,.0f}<extra></extra>"))
     fig.add_vline(x=hist.index[-1], line_width=1, line_dash="dot", line_color=CLARO)
-    st.plotly_chart(light(fig, 380, moneda=True), use_container_width=True)
+    st.plotly_chart(light(fig, 380, moneda=True), width="stretch", theme=None, config=PLOTLY_CONFIG)
     st.caption(
         f"La banda es el error propio del método (±{err*100:.1f}%), no un intervalo "
         f"de confianza estadístico. Se calcula pidiéndole al mismo cálculo que "

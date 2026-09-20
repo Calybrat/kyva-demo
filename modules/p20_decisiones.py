@@ -13,31 +13,113 @@ veinte segundos:
      no por gravedad declarada sino por plata en juego.
   4. **Quién decide.** Una decisión sin dueño vuelve a aparecer el lunes.
 
-La bandeja junta lo que hoy vive en cinco lugares distintos: el ERP, el informe
-del operador logístico, el Excel de cartera, el WhatsApp del vendedor y la
-cabeza de quien compra. Ese reparto es la razón por la que nada se decide: cada
-pieza sola no alcanza para actuar.
+La bandeja junta lo que hoy vive en ocho lugares distintos: el ERP, el informe
+del operador logístico, el Excel de cartera, el contador de cuotas del
+proveedor, el inventario de lotes, el presupuesto del año, el WhatsApp del
+vendedor y la cabeza de quien compra. Ese reparto es la razón por la que nada
+se decide: cada pieza sola no alcanza para actuar.
+
+**Decidir aquí no es marcar un check.** La revisión adversaria fue lapidaria
+con la versión anterior:
+
+    «Tiene un botón que dice "Decidir" y le voy a decir qué hace: guarda en la
+    memoria de mi navegador. Refresco la página y se borró. Eso no es un
+    sistema de gerencia, eso es una demo.»
+
+Tenía razón, y el arreglo no es técnico sino de concepto. Decidir exige elegir
+**dueño y plazo**: toda decisión genera un compromiso con nombre y fecha, y se
+guarda en disco, fuera de la sesión del navegador. Lo que queda es el registro
+—quién decidió qué, cuándo y con qué número a la vista— que es exactamente lo
+que permite contestar en enero por qué se le bajó el descuento a una cuenta en
+septiembre.
 
 **Nada de aquí se ejecuta solo.** Decidir deja registro y dispara el flujo; la
 acción la confirma una persona. Es la misma regla del módulo de
 automatizaciones y es lo que permite que un director de operaciones diga que sí.
 """
+import re
+
 import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
 import streamlit as st
 
 from utils.formatters import *
-from utils import b2b, operacion, datos
+from utils import b2b, operacion, datos, gerencia, filtros, estado
 
 TONO = {"Alta": "#8B1E1E", "Media": "#B5762F", "Baja": CLARO}
 ICONO = {"Condiciones comerciales": "🤝", "Cuenta apagada": "🔌",
          "Riesgo de crédito": "🏦", "Compra": "📦", "Excepción": "⚠️",
-         "Precio": "🏷️"}
+         "Precio": "🏷️", "Cartera": "🏦", "Marcas": "🎁",
+         "Vencimientos": "⏳", "Presupuesto": "🎯"}
+
+# Las tres situaciones en que puede estar una fila. Aplazada tiene color
+# propio: no es verde porque no está resuelta.
+ESTADOS = (("Sin decidir", ACENTO), ("Aplazada", "#B5762F"), ("Con dueño", "#2f7a48"))
+
+# Plazos que se pueden pactar. No hay "sin fecha": un compromiso sin fecha es
+# una intención, y las intenciones son las que vuelven a la bandeja el lunes.
+PLAZOS = {"Esta semana": 7, "Quince días": 15, "Este mes": 30,
+          "Antes del cierre del trimestre": 45}
+
+# A quién le cae por defecto lo que no tiene un vendedor detrás. Son las áreas
+# que la propia bandeja declara en la columna «decide».
+DUENO_POR_AREA = {
+    "Dirección comercial": "Javier", "Compras": "Diana (compras)",
+    "Operaciones": "Javier", "Cartera": "Andrea Restrepo",
+    "Dirección": "Javier",
+}
+
+# Quedan cuatro meses hasta el cierre del año (el corte del panel es agosto).
+# Una brecha de presupuesto que nadie corrige se repite los meses que faltan:
+# por eso se anualiza así y no se reporta el número del mes a secas.
+MESES_AL_CIERRE = 4
 
 
 # ── Construcción de la bandeja ───────────────────────────────────────────────
+def _clave(tipo: str, ident: str) -> str:
+    """Identificador estable de una fila, para poder recordarla en disco.
+
+    La versión anterior usaba el índice del DataFrame. Bastaba con cambiar un
+    filtro o con que entrara una factura nueva para que la decisión guardada
+    apareciera pegada a otra fila. La clave tiene que salir del negocio
+    —cuenta, marca, proveedor— y no de la posición en una tabla.
+    """
+    base = re.sub(r"[^a-z0-9]+", "-", f"{tipo}-{ident}".lower()).strip("-")
+    return base[:64]
+
+
+def _a_pesos(txt: str) -> float:
+    """«14 M al año» → 14.000.000. Sirve para ordenar por plata, no por texto."""
+    m = re.search(r"(-?[\d.,]+)\s*M", str(txt))
+    if not m:
+        return 0.0
+    try:
+        return float(m.group(1).replace(".", "").replace(",", ".")) * 1e6
+    except ValueError:
+        return 0.0
+
+
+def _riesgo_de_esperar(saldo: float, tramo: str) -> float:
+    """Lo que cuesta dejar que una factura vencida pase al siguiente tramo.
+
+    No es el saldo entero —ese se cobra o no se cobra igual— sino el deterioro:
+    una factura en «31 a 60» se recupera al 82%; si nadie la llama y cruza a
+    «61 a 90», al 58%. Esos veinticuatro puntos son el precio exacto de la
+    semana que se dejó pasar, y es el número que hace comparable una gestión de
+    cobro con una orden de compra.
+    """
+    t = gerencia.TRAMOS
+    if tramo not in t:
+        return saldo * 0.10
+    sig = t[min(t.index(tramo) + 1, len(t) - 1)]
+    # En «Más de 90» ya no hay tramo siguiente, pero seguir sin tocarla tampoco
+    # es gratis: el piso del 5% evita que la mora más vieja quede de última.
+    return saldo * max(gerencia.COBRO[tramo] - gerencia.COBRO[sig], 0.05)
+
+
 def _bandeja() -> pd.DataFrame:
-    """Reúne en una sola cola lo que hoy vive repartido en cinco sistemas.
+    """Reúne en una sola cola lo que hoy vive repartido en ocho sistemas.
 
     El orden lo fija la PLATA EN JUEGO, no la gravedad que declare cada fuente.
     Una alerta «alta» de 400 mil pesos no puede ir encima de una «media» de
@@ -47,19 +129,86 @@ def _bandeja() -> pd.DataFrame:
     filas = []
 
     # 1. Lo que sale del análisis de cuentas (gen_b2b lo calcula con su costo real)
-    d = b2b.decisiones()
+    d = filtros.aplicar(b2b.decisiones(), col_mes=None)
     for _, r in d.iterrows():
         plata = _a_pesos(r.get("si_nadie_hace_nada", ""))
         filas.append({
+            "clave": _clave(r["tipo"], r.get("cuenta") or r["titulo"]),
             "tipo": r["tipo"], "urgencia": r["urgencia"], "titulo": r["titulo"],
             "dato": r["dato"], "opciones": r["accion"],
             "costo_inaccion": abs(plata), "costo_txt": r["si_nadie_hace_nada"],
             "decide": r["decide"], "quien": r.get("cuenta", ""),
-            "origen": "Análisis de cuentas",
+            "sugerido": r.get("vendedor", ""), "origen": "Análisis de cuentas",
         })
 
-    # 2. Compras cuya ventana de importación se cierra
-    inv = operacion.inventario()
+    # 2. Cartera: lo vencido de más de 30 días, por cuenta
+    #
+    # Se agrupa por cuenta y no por factura a propósito: nadie llama a una
+    # factura, se llama al dueño del bar, y si tiene tres vencidas la
+    # conversación es una sola.
+    f = filtros.aplicar(gerencia.facturas())
+    venc = f[(~f["pagada"]) & (f["dias_vencida"] > 30)].copy()
+    if len(venc):
+        venc["riesgo"] = [_riesgo_de_esperar(s, t)
+                          for s, t in zip(venc["saldo"], venc["tramo"])]
+        # Ordenar por mora antes de agrupar hace que «last» sea el tramo de la
+        # factura más vieja, que es la que manda en la conversación de cobro.
+        por_cuenta = venc.sort_values("dias_vencida").groupby(
+            ["cuenta_id", "nombre", "canal", "ciudad", "vendedor"]).agg(
+            saldo=("saldo", "sum"), riesgo=("riesgo", "sum"),
+            n=("factura", "size"), dias=("dias_vencida", "max"),
+            tramo=("tramo", "last")).reset_index()
+        for _, r in por_cuenta.nlargest(5, "riesgo").iterrows():
+            filas.append({
+                "clave": _clave("cartera", r["cuenta_id"]),
+                "tipo": "Cartera",
+                "urgencia": "Alta" if r["dias"] > 60 else "Media",
+                "titulo": f"{r['nombre']} debe {cop(r['saldo'])} con {int(r['dias'])} días de mora",
+                "dato": f"{int(r['n'])} factura(s) en el tramo «{r['tramo']}» · "
+                        f"{r['canal']} · {r['ciudad']} · vende {r['vendedor']}",
+                "opciones": "Llamar hoy y pactar fecha de pago · suspender despachos "
+                            "hasta que se ponga al día · pasar a acuerdo de pago con cuotas",
+                "costo_inaccion": float(r["riesgo"]),
+                "costo_txt": f"{cop(r['riesgo'], 0)} que se dejan de recobrar",
+                "decide": "Cartera", "quien": r["nombre"],
+                "sugerido": r["vendedor"], "origen": "Cartera",
+            })
+
+    # 3. Marcas: cuotas de trimestre que no llegan al ritmo actual
+    #
+    # El compromiso con la marca es de la compañía entera, no de una ciudad ni
+    # de un vendedor: por eso este bloque NO pasa por los filtros globales.
+    reb = gerencia.rebates()
+    act = reb[reb["trimestre"] == "2026-T3"].copy()
+    if len(act):
+        # Van dos meses de tres: el cierre se proyecta al ritmo que lleva.
+        act["proyectado"] = act["unidades"] / 2 * 3
+        act["cumpl_proy"] = act["proyectado"] / act["cuota"] * 100
+        act["faltan"] = (act["cuota"] - act["proyectado"]).clip(lower=0)
+        act["vale_el_tramo"] = act["compra"] / 2 * 3 * act["siguiente_tramo"]
+        cortas = act[(act["cumpl_proy"] < 100) & (act["vale_el_tramo"] > 0)]
+        for _, r in cortas.nlargest(4, "vale_el_tramo").iterrows():
+            excl = " (exclusiva)" if r["exclusiva"] else ""
+            filas.append({
+                "clave": _clave("marca", f"{r['marca']}-2026t3"),
+                "tipo": "Marcas",
+                "urgencia": "Alta" if r["cumpl_proy"] < 92 else "Media",
+                "titulo": f"{r['marca']}{excl} cierra el trimestre en "
+                          f"{r['cumpl_proy']:.0f}% al ritmo de hoy",
+                "dato": f"{miles(r['unidades'])} de {miles(r['cuota'])} unidades · "
+                        f"faltan {miles(r['faltan'])} u · quedan 30 días",
+                "opciones": "Comprar las unidades que faltan antes del cierre · "
+                            "empujar la marca en la promoción del mes · "
+                            "renegociar la cuota con el proveedor para el próximo trimestre",
+                "costo_inaccion": float(r["vale_el_tramo"]),
+                "costo_txt": f"{cop(r['vale_el_tramo'], 0)} del tramo que se pierde",
+                "decide": "Compras", "quien": r["marca"],
+                "sugerido": "", "origen": "Marcas y rebate",
+            })
+
+    # 4. Compras cuya ventana de importación se cierra
+    inv = operacion.inventario().rename(columns={"bodega": "ciudad"})
+    inv = filtros.aplicar(inv, col_mes=None)
     urge = inv[(inv["urgencia"].isin(["Ventana cerrada", "Pedir esta semana"])) &
                (inv["faltante_pico"] > 0)]
     if len(urge):
@@ -67,25 +216,86 @@ def _bandeja() -> pd.DataFrame:
             refs=("sku", "nunique"), plata=("valor_faltante", "sum"),
             limite=("fecha_limite_pedido", "min")).reset_index()
         for _, r in por_prov.nlargest(4, "plata").iterrows():
+            lim = r["limite"]
             filas.append({
+                "clave": _clave("compra", r["proveedor"]),
                 "tipo": "Compra", "urgencia": "Alta",
-                "titulo": f"Orden a {r['proveedor']} antes del {r['limite']:%d de %B}",
-                "dato": f"{r['refs']} referencias · {cop(r['plata'], 0)} de faltante para la temporada",
+                "titulo": f"Orden a {r['proveedor']} antes del "
+                          f"{lim.day} de {MESES_ES[lim.month - 1]}",
+                "dato": f"{r['refs']} referencias · {cop(r['plata'], 0)} de faltante "
+                        f"para la temporada",
                 "opciones": "Emitir la orden sugerida · pedir solo el top 10 · "
                             "asumir el quiebre y comprar a un mayorista local en diciembre",
                 "costo_inaccion": float(r["plata"]) * 0.45,
                 "costo_txt": f"{cop(r['plata'] * 0.45, 0)} de venta perdida estimada",
                 "decide": "Compras", "quien": r["proveedor"],
-                "origen": "Reposición",
+                "sugerido": "", "origen": "Reposición",
             })
 
-    # 3. Lo que la automatización no pudo resolver sola
+    # 5. Vencimientos: lotes críticos en bodega
+    lot = gerencia.lotes().rename(columns={"bodega": "ciudad"})
+    lot = filtros.aplicar(lot, col_mes=None)
+    cri = lot[(lot["estado"].isin(["Crítico", "Vencido"])) & (lot["en_riesgo"] > 0)]
+    if len(cri):
+        por_marca = cri.groupby(["marca", "ciudad"]).agg(
+            plata=("en_riesgo", "sum"), u=("en_riesgo_u", "sum"),
+            lotes=("lote", "size"), dias=("dias_para_vencer", "min")).reset_index()
+        for _, r in por_marca.nlargest(3, "plata").iterrows():
+            filas.append({
+                "clave": _clave("lote", f"{r['marca']}-{r['ciudad']}"),
+                "tipo": "Vencimientos",
+                "urgencia": "Alta" if r["dias"] <= 21 else "Media",
+                "titulo": f"{r['marca']} en {r['ciudad']}: {int(r['u'])} unidades "
+                          f"no se alcanzan a vender",
+                "dato": f"{int(r['lotes'])} lote(s) · vence el primero en "
+                        f"{int(r['dias'])} días · a la rotación de hoy sobra producto",
+                "opciones": "Sacarlo en promoción esta semana · moverlo a la otra bodega · "
+                            "ofrecerlo al canal de distribución con descuento · "
+                            "negociar devolución con el proveedor",
+                "costo_inaccion": float(r["plata"]),
+                "costo_txt": f"{cop(r['plata'], 0)} que se van a la basura",
+                "decide": "Operaciones", "quien": r["marca"],
+                "sugerido": "", "origen": "Vencimientos",
+            })
+
+    # 6. Presupuesto: el mes cerrado contra la meta, por canal y ciudad
+    #
+    # Se mira el ÚLTIMO MES CERRADO y no el acumulado a propósito: un acumulado
+    # bueno esconde justo el mes en que se empezó a caer, que es el único que
+    # todavía se puede corregir. Y se descartan los meses con real en cero
+    # —Medellín antes de marzo— porque sumarlos inventa una brecha de cuarenta
+    # millones en una ciudad que todavía no existía.
+    pre = filtros.aplicar(gerencia.presupuesto())
+    pre = pre[pre["real"] > 0]
+    if len(pre):
+        ult = pre[pre["mes"] == pre["mes"].max()]
+        cortos = ult[ult["brecha"] < 0]
+        for _, r in cortos.nsmallest(3, "brecha").iterrows():
+            filas.append({
+                "clave": _clave("presupuesto", f"{r['canal']}-{r['ciudad']}-{r['mes']}"),
+                "tipo": "Presupuesto",
+                "urgencia": "Alta" if r["cumplimiento"] < 90 else "Media",
+                "titulo": f"{r['canal']} en {r['ciudad']} cerró {mes_es(r['mes'])} en "
+                          f"{r['cumplimiento']:.0f}% del presupuesto",
+                "dato": f"Meta {cop(r['presupuesto'], 0)} · real {cop(r['real'], 0)} · "
+                        f"faltaron {cop(abs(r['brecha']), 0)}",
+                "opciones": "Revisar la cuota del vendedor de ese canal · "
+                            "reasignar el presupuesto del canal al que sí está tirando · "
+                            "montar una acción comercial para el trimestre",
+                "costo_inaccion": abs(float(r["brecha"])) * MESES_AL_CIERRE,
+                "costo_txt": f"{cop(abs(r['brecha']) * MESES_AL_CIERRE, 0)} hasta cerrar el año",
+                "decide": "Dirección comercial", "quien": f"{r['canal']} · {r['ciudad']}",
+                "sugerido": "", "origen": "Presupuesto",
+            })
+
+    # 7. Lo que la automatización no pudo resolver sola
     eje = operacion.ejecuciones()
     fallas = eje[eje["resultado"] != "ok"]
     if len(fallas):
         por_motivo = fallas["motivo"].value_counts().head(2)
         for motivo, n in por_motivo.items():
             filas.append({
+                "clave": _clave("excepcion", motivo),
                 "tipo": "Excepción", "urgencia": "Media",
                 "titulo": f"{n} pedidos detenidos: {motivo.lower()}",
                 "dato": f"{n} corridas en 30 días se pararon por lo mismo",
@@ -94,15 +304,16 @@ def _bandeja() -> pd.DataFrame:
                 "costo_inaccion": n * 11 * 12 * 60_000 / 60,
                 "costo_txt": f"≈{n * 11 * 12 / 60:,.0f} horas al año de revisión manual",
                 "decide": "Operaciones", "quien": "",
-                "origen": "Automatizaciones",
+                "sugerido": "", "origen": "Automatizaciones",
             })
 
-    # 4. Precio contra competencia
+    # 8. Precio contra competencia
     try:
         pc = datos.precios_competencia()
         caras = pc[pc["kyva_classic"] > pc["precio_competidor"] * 1.06]
         if len(caras):
             filas.append({
+                "clave": _clave("precio", "competencia"),
                 "tipo": "Precio", "urgencia": "Media",
                 "titulo": f"{len(caras)} referencias por encima del competidor",
                 "dato": "  ·  ".join(f"{r['producto'][:26]} +"
@@ -113,7 +324,7 @@ def _bandeja() -> pd.DataFrame:
                 "costo_inaccion": 0,
                 "costo_txt": "riesgo de perder la referencia en licitación",
                 "decide": "Dirección comercial", "quien": "",
-                "origen": "Precios",
+                "sugerido": "", "origen": "Precios",
             })
     except Exception:
         pass
@@ -121,34 +332,50 @@ def _bandeja() -> pd.DataFrame:
     b = pd.DataFrame(filas)
     if b.empty:
         return b
+    b = b.drop_duplicates(subset="clave", keep="first")
     return b.sort_values("costo_inaccion", ascending=False).reset_index(drop=True)
 
 
-def _a_pesos(txt: str) -> float:
-    """«14 M al año» → 14.000.000. Sirve para ordenar por plata, no por texto."""
-    import re
-    m = re.search(r"(-?[\d.,]+)\s*M", str(txt))
-    if not m:
-        return 0.0
-    try:
-        return float(m.group(1).replace(".", "").replace(",", ".")) * 1e6
-    except ValueError:
-        return 0.0
+def _duenos() -> list:
+    """Quién puede quedar de dueño.
+
+    La lista sale de quien YA responde por compromisos en la casa, más el
+    equipo comercial. No es un catálogo aparte que se desincroniza: si entra un
+    vendedor nuevo, aparece aquí sin tocar nada.
+    """
+    base = gerencia.compromisos_base()["dueno"].dropna().astype(str)
+    vend = b2b.vendedores()["vendedor"].dropna().astype(str)
+    gente = {x.strip() for x in list(base) + list(vend) if x.strip()}
+    return sorted(gente)
 
 
 # ── Presentación ─────────────────────────────────────────────────────────────
-def _tarjeta(i, r, resuelta):
+def _tarjeta(r, dec):
+    """La fila completa: el número, las opciones, lo que cuesta y quién decide."""
     color = TONO.get(r["urgencia"], CLARO)
     opciones = "".join(
         f'<li style="margin-bottom:3px">{o.strip()}</li>'
         for o in str(r["opciones"]).split("·"))
-    apagado = "opacity:.45;" if resuelta else ""
-    sello = ('<span style="background:#E3F0E8;color:#2f7a48;font-size:10px;'
-             'font-weight:800;padding:2px 8px;border-radius:3px">✓ DECIDIDA</span>'
-             if resuelta else "")
+    apagado = "opacity:.5;" if dec else ""
+    sello = pie = ""
+    if dec:
+        # Aplazada no lleva el verde de resuelta: no lo está.
+        fondo, letra, marca = (("#FBF0E6", "#8A5A1B", "⏸")
+                               if dec["accion"] == "Aplazada"
+                               else ("#E3F0E8", "#2f7a48", "✓"))
+        sello = (f'<span style="background:{fondo};color:{letra};font-size:10px;'
+                 f'font-weight:800;padding:2px 8px;border-radius:3px;'
+                 f'white-space:nowrap">{marca} {dec["accion"].upper()} · '
+                 f'{dec["quien"]}</span>')
+        pie = (f'{dec["accion"]} el {dec["cuando"]} por '
+               f'<b style="color:{TINTA}">{dec["quien"]}</b>'
+               + (f' &nbsp;·&nbsp; {dec["nota"]}' if dec.get("nota") else ""))
+    else:
+        pie = (f'Decide: <b style="color:{TINTA}">{r["decide"]}</b>' +
+               (f' &nbsp;·&nbsp; {r["quien"]}' if r["quien"] else ""))
     return f"""
     <div style="{apagado}border:1px solid {PALIDO};border-left:4px solid {color};
-         border-radius:5px;padding:15px 18px;margin-bottom:11px;background:#fff">
+         border-radius:5px;padding:15px 18px;margin-bottom:6px;background:#fff">
       <div style="display:flex;justify-content:space-between;gap:14px;align-items:flex-start">
         <div style="flex:1">
           <div style="font-size:9.5px;font-weight:800;letter-spacing:.13em;
@@ -169,10 +396,41 @@ def _tarjeta(i, r, resuelta):
            border-radius:4px;padding:9px 14px 9px 26px;margin-bottom:8px">
         <b style="margin-left:-12px">Opciones:</b>
         <ul style="margin:4px 0 0;padding-left:14px">{opciones}</ul></div>
-      <div style="font-size:11px;color:{CLARO}">
-        Decide: <b style="color:{TINTA}">{r['decide']}</b>
-        {f" &nbsp;·&nbsp; {r['quien']}" if r['quien'] else ""}</div>
+      <div style="font-size:11px;color:{CLARO}">{pie}</div>
     </div>"""
+
+
+def _grafico_plata(b, comprometidas, aplazadas):
+    """Dónde está la plata en juego y cuánta ya tiene dueño.
+
+    Contesta la pregunta previa a la bandeja: «¿de qué es el problema este
+    mes?». Cartera y compras se ven distintas cuando una barra vale seis veces
+    la otra, y eso no se percibe leyendo tarjetas una por una.
+
+    Aplazada va en su propia franja y NO cuenta como resuelta: aplazar es
+    precisamente no comprometerse, y la plata sigue exactamente donde estaba.
+    """
+    t = b.copy()
+    t["situacion"] = np.where(t["clave"].isin(comprometidas), "Con dueño",
+                              np.where(t["clave"].isin(aplazadas), "Aplazada",
+                                       "Sin decidir"))
+    g = (t.groupby(["tipo", "situacion"])["costo_inaccion"].sum()
+         .unstack(fill_value=0).reindex(columns=[e[0] for e in ESTADOS],
+                                        fill_value=0))
+    g = g.loc[g.sum(axis=1).sort_values().index]
+
+    fig = go.Figure()
+    for estado_, color in ESTADOS:
+        fig.add_trace(go.Bar(
+            y=g.index, x=g[estado_] / 1e6, orientation="h", name=estado_,
+            marker_color=color,
+            hovertemplate="%{y} · " + estado_ + "<br>$%{x:,.1f} M<extra></extra>"))
+    fig.update_layout(barmode="stack")
+    # El eje va en millones a mano: con `moneda=True` el formateo solo toca el
+    # eje Y, y en barras horizontales la plata está en el X.
+    fig.update_xaxes(title="Plata en juego, anualizada", tickprefix="$",
+                     ticksuffix=" M", tickformat=",.0f")
+    return fig
 
 
 def render():
@@ -181,42 +439,71 @@ def render():
         "Centro de decisiones",
         "Lo que espera que alguien decida, ordenado por la plata que cuesta no decidirlo",
         "El lunes a las 7"), unsafe_allow_html=True)
+    filtros.encabezado_filtro()
 
     b = _bandeja()
-    if "decididas" not in st.session_state:
-        st.session_state.decididas = set()
-    pendientes = b[~b.index.isin(st.session_state.decididas)]
+    if b.empty:
+        st.success("No hay nada esperando decisión con estos filtros. La bandeja "
+                   "en cero es el objetivo, no la excepción.")
+        return
+
+    dec = estado.decisiones()
+    # Aplazar no resuelve: por eso va en su propio conjunto y la plata de esas
+    # filas se sigue contando como abierta.
+    comprometidas = {c for c, v in dec.items()
+                     if v.get("accion") in ("Decidida", "Delegada")}
+    aplazadas = {c for c, v in dec.items() if v.get("accion") == "Aplazada"}
+    pendientes = b[~b["clave"].isin(set(dec))]
 
     total = float(b["costo_inaccion"].sum())
-    abierto = float(pendientes["costo_inaccion"].sum())
+    cerrado = float(b.loc[b["clave"].isin(comprometidas), "costo_inaccion"].sum())
+    abierto = total - cerrado
     altas = int((pendientes["urgencia"] == "Alta").sum())
+    comprometido = sum(float(dec[c].get("valor", 0) or 0) for c in comprometidas)
 
     k = st.columns(4, gap="small")
+    pospuestas = int(b["clave"].isin(aplazadas).sum())
     k[0].markdown(kpi(
         "Esperando decisión", num(len(pendientes)),
-        f"{altas} no pueden esperar a la otra semana", altas == 0, "📋",
+        f"{altas} no pueden esperar a la otra semana"
+        + (f" · {pospuestas} aplazadas" if pospuestas else ""),
+        altas == 0, "📋",
         "Cada una trae el número, las opciones y quién decide."),
         unsafe_allow_html=True)
     k[1].markdown(kpi(
         "En juego", cop(abierto, 0),
         "anualizado, si nadie las toca", False, "💰",
-        "La suma de lo que cuesta no decidir cada una.",
+        "La suma de lo que cuesta no decidir cada una. Lo aplazado sigue "
+        "contando aquí: aplazar no mueve la plata de sitio.",
         "Es lo que ordena la bandeja — no la gravedad declarada"),
         unsafe_allow_html=True)
     k[2].markdown(kpi(
-        "Decididas en esta sesión", num(len(st.session_state.decididas)),
-        cop(total - abierto, 0) + " resueltos",
-        len(st.session_state.decididas) > 0, "✓",
-        "Queda registro de quién decidió qué y cuándo."),
-        unsafe_allow_html=True)
+        "Con dueño y fecha", num(len(comprometidas)),
+        cop(comprometido, 0) + " comprometidos", len(comprometidas) > 0, "✍️",
+        "Guardadas en disco, no en el navegador: siguen aquí el lunes aunque "
+        "se cierre la pestaña.",
+        "Cada una generó un compromiso con nombre y plazo"), unsafe_allow_html=True)
     fuentes = b["origen"].nunique()
     k[3].markdown(kpi(
         "Sistemas que se consultan", num(fuentes),
         "en una sola bandeja", True, "🔗",
-        "ERP, logística, cartera, compras y precios. Hoy son cinco pestañas "
-        "distintas y por eso nada se decide."), unsafe_allow_html=True)
+        "ERP, logística, cartera, cuotas de marca, lotes, presupuesto, compras "
+        "y precios. Hoy son ocho pestañas distintas y por eso nada se decide."),
+        unsafe_allow_html=True)
 
     st.markdown(espacio(18), unsafe_allow_html=True)
+
+    # ── Dónde está la plata ─────────────────────────────────────────────────
+    st.markdown('<div class="ky-sub">De qué es el problema este mes</div>',
+                unsafe_allow_html=True)
+    st.plotly_chart(light(_grafico_plata(b, comprometidas, aplazadas), 300),
+                    use_container_width=True)
+    st.caption(md(
+        f"Verde es lo que ya tiene dueño y fecha. De **{cop(total, 0)}** en "
+        f"juego, **{cop(cerrado, 0)}** están asignados y **{cop(abierto, 0)}** "
+        f"siguen sin que nadie responda por ellos."))
+
+    st.markdown(espacio(10), unsafe_allow_html=True)
 
     st.markdown(panel(
         "Por qué esto no es una lista de alertas",
@@ -229,44 +516,151 @@ def render():
         "todos los días, que es exactamente por lo que nadie las lee.",
         "📋", "azul"), unsafe_allow_html=True)
 
+    st.markdown(panel(
+        "Decidir aquí crea un compromiso, no un check",
+        "Para cerrar una fila hay que poner <b>dueño y plazo</b>. No es fricción "
+        "de formulario: una decisión sin alguien que responda por ella y sin "
+        "fecha vuelve a aparecer en la bandeja el lunes siguiente, y eso es "
+        "exactamente lo que mata estas herramientas. El área que <i>decide</i> y "
+        "la persona que <i>responde</i> no son lo mismo — Dirección comercial "
+        "decide bajar un descuento, pero alguien con nombre tiene que llamar al "
+        "cliente antes del viernes.<br><br>"
+        "Lo que se guarda queda en disco, no en la memoria del navegador: se "
+        "puede refrescar, cerrar la pestaña o volver el lunes y el registro "
+        "sigue ahí.",
+        "✍️", "ok"), unsafe_allow_html=True)
+
     st.markdown(espacio(6), unsafe_allow_html=True)
 
+    # ── La bandeja ──────────────────────────────────────────────────────────
     c = st.columns([1, 1, 1, 2])
     tipos = ["Todos"] + sorted(b["tipo"].unique().tolist())
     tipo = c[0].selectbox("Tipo", tipos, key="dc_tipo")
     quien = c[1].selectbox("Decide", ["Todos"] + sorted(b["decide"].unique().tolist()),
                            key="dc_quien")
-    ver = c[2].selectbox("Mostrar", ["Pendientes", "Todas"], key="dc_ver")
+    ver = c[2].selectbox("Mostrar", ["Pendientes", "Aplazadas", "Todas"],
+                         key="dc_ver")
 
-    sel = b if ver == "Todas" else pendientes
+    # Lo aplazado sale de la vista por defecto —para eso se aplaza— pero tiene
+    # su propia pestaña: una fila que se aplaza tres lunes seguidos es una
+    # decisión que nadie quiere tomar, y eso hay que poder verlo.
+    if ver == "Todas":
+        sel = b
+    elif ver == "Aplazadas":
+        sel = b[b["clave"].isin(aplazadas)]
+    else:
+        sel = pendientes
     if tipo != "Todos":
         sel = sel[sel["tipo"] == tipo]
     if quien != "Todos":
         sel = sel[sel["decide"] == quien]
 
+    gente = _duenos() or ["Dirección"]
+    plazos = list(PLAZOS)
+
     if sel.empty:
         st.success("Nada pendiente con ese filtro. La bandeja en cero es el objetivo, "
                    "no la excepción.")
-    for i, r in sel.iterrows():
-        resuelta = i in st.session_state.decididas
-        st.markdown(_tarjeta(i, r, resuelta), unsafe_allow_html=True)
-        if not resuelta:
-            bot = st.columns([1, 1, 1, 3])
-            if bot[0].button("Decidir", key=f"ok_{i}", width="stretch"):
-                st.session_state.decididas.add(i)
+
+    for _, r in sel.iterrows():
+        clave = r["clave"]
+        d = dec.get(clave)
+        st.markdown(_tarjeta(r, d), unsafe_allow_html=True)
+
+        if d:
+            fin = st.columns([1, 5])
+            if fin[0].button("Reabrir", key=f"re_{clave}", width="stretch"):
+                estado.olvidar(clave)
                 st.rerun()
-            if bot[1].button("Delegar", key=f"dl_{i}", width="stretch"):
-                st.session_state.decididas.add(i)
+            st.markdown(espacio(6), unsafe_allow_html=True)
+            continue
+
+        with st.expander("Decidir — hay que poner dueño y plazo"):
+            sug = r["sugerido"] if r["sugerido"] in gente else \
+                DUENO_POR_AREA.get(r["decide"], gente[0] if gente else "")
+            idx = gente.index(sug) if sug in gente else 0
+            f1 = st.columns([1.3, 1.2, 2.5])
+            dueno = f1[0].selectbox("Dueño", gente, index=idx, key=f"du_{clave}")
+            plazo = f1[1].selectbox("Plazo", plazos, index=1, key=f"pl_{clave}")
+            nota = f1[2].text_input(
+                "Qué se acordó", key=f"nt_{clave}",
+                placeholder=r["opciones"].split("·")[0].strip())
+
+            f2 = st.columns([1, 1, 1, 3])
+            texto = nota.strip() or r["titulo"]
+            if f2[0].button("Decidir", key=f"ok_{clave}", width="stretch",
+                            type="primary"):
+                estado.decidir(clave, "Decidida", dueno, texto,
+                               float(r["costo_inaccion"]), PLAZOS[plazo])
                 st.rerun()
-            bot[2].button("Aplazar", key=f"ap_{i}", width="stretch")
+            if f2[1].button("Delegar", key=f"dl_{clave}", width="stretch"):
+                estado.decidir(clave, "Delegada", dueno, texto,
+                               float(r["costo_inaccion"]), PLAZOS[plazo])
+                st.rerun()
+            if f2[2].button("Aplazar", key=f"ap_{clave}", width="stretch"):
+                # Aplazar también se registra: si una fila se aplaza tres veces
+                # seguidas eso es información, no ruido. Pero NO crea
+                # compromiso — `estado.decidir` solo lo hace con Decidida y
+                # Delegada, y aplazar es justamente no comprometerse.
+                estado.decidir(clave, "Aplazada", dueno,
+                               texto, float(r["costo_inaccion"]), PLAZOS[plazo])
+                st.rerun()
+
+        st.markdown(espacio(8), unsafe_allow_html=True)
+
+    st.markdown(espacio(14), unsafe_allow_html=True)
+
+    # ── El registro ─────────────────────────────────────────────────────────
+    #
+    # Esta tabla es el módulo entero. Sin ella lo de arriba es un tablero con
+    # botones; con ella se puede contestar en enero por qué se le bajó el
+    # descuento a una cuenta en septiembre, quién lo decidió y con qué número a
+    # la vista.
+    st.markdown('<div class="ky-sub">El registro: quién decidió qué y cuándo</div>',
+                unsafe_allow_html=True)
+
+    if not dec:
+        st.caption("Todavía no hay decisiones registradas. Cada una que se tome "
+                   "aquí queda con dueño, fecha y el número que la justificaba.")
+    else:
+        titulos = dict(zip(b["clave"], b["titulo"]))
+        reg = pd.DataFrame([{
+            "Cuándo": v.get("cuando", ""),
+            "Qué se decidió": titulos.get(c, v.get("nota", "") or c),
+            "Acción": v.get("accion", ""),
+            "Dueño": v.get("quien", ""),
+            "Se acordó": v.get("nota", ""),
+            "Plata que estaba en juego": cop(v.get("valor", 0), 0),
+        } for c, v in dec.items()])
+        reg = reg.sort_values("Cuándo", ascending=False)
+        st.dataframe(reg, hide_index=True, width="stretch")
+
+        comp = {k: v for k, v in estado.compromisos().items() if k.startswith("D-")}
+        if comp:
+            st.caption(
+                f"Las {len(comp)} decisiones con acción «Decidida» o «Delegada» "
+                f"generaron su compromiso con dueño y fecha de vencimiento. "
+                f"Cerrar un compromiso exige escribir **qué pasó**, que es lo que "
+                f"permite mirar dentro de tres meses si la decisión sirvió.")
 
     st.markdown(espacio(14), unsafe_allow_html=True)
     st.markdown(panel(
         "Qué pasa al pulsar «Decidir»",
-        "En el demo, marcar la tarjeta. Conectado de verdad: queda el registro de "
-        "quién decidió, cuándo y con qué número a la vista —eso es lo que permite "
-        "revisar en enero por qué se le bajó el descuento a una cuenta en "
-        "septiembre— y se dispara el flujo correspondiente en Loggro o Salesforce, "
-        "que <b>prepara la acción y espera confirmación</b>. El sistema nunca "
-        "ejecuta solo lo que mueve plata.",
-        "✓", "rojo"), unsafe_allow_html=True)
+        "Queda el registro de quién decidió, cuándo y con qué número a la vista, "
+        "y se crea el compromiso con dueño y fecha de vencimiento. Eso es lo que "
+        "permite revisar en enero por qué se le bajó el descuento a una cuenta en "
+        "septiembre. Conectado de verdad, además se dispara el flujo "
+        "correspondiente en Loggro o Salesforce, que <b>prepara la acción y "
+        "espera confirmación</b>. El sistema nunca ejecuta solo lo que mueve "
+        "plata.",
+        "✓", "alerta"), unsafe_allow_html=True)
+
+    with st.expander("Para la demostración"):
+        st.caption(
+            f"Las decisiones y los compromisos se guardan en `{estado.donde()}`, "
+            f"fuera del árbol del proyecto —escribirlos dentro hace que Streamlit "
+            f"los lea como código cambiado y recargue en bucle—. Este botón deja "
+            f"el demo como recién instalado.")
+        if st.button("Reiniciar el demo", key="dc_reset"):
+            estado.reiniciar()
+            st.rerun()

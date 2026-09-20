@@ -77,7 +77,8 @@ def _ficha(c, plazo, atraso) -> str:
           <div style="font-size:30px;font-weight:800;color:{color};line-height:1.1">
             {cop(c['saldo'], 0)}</div>
           <div style="font-size:12px;color:{CLARO}">
-            {cop(c['vencido'], 0)} vencido en {int(c['facturas'])} facturas</div>
+            {cop(c['vencido'], 0)} vencido · {int(c['facturas'])} facturas abiertas
+            de {int(c['emitidas'])} emitidas</div>
         </div>
       </div>
     </div>"""
@@ -234,10 +235,16 @@ def render():
     # ── Riesgo contra valor ─────────────────────────────────────────────────
     st.markdown('<div class="ky-sub">A quién apretar y a quién cuidar</div>',
                 unsafe_allow_html=True)
-    base = ab.assign(venc=np.where(ab["dias_vencida"] > 0, ab["saldo"], 0))
+    # Se agrupa sobre TODAS las facturas, no solo las abiertas: una factura
+    # pagada trae saldo 0 y no ensucia ninguna suma, pero deja a la cuenta en la
+    # lista. Si se agrupa solo lo abierto, la cuenta que acaba de pagar
+    # desaparece del panel justo el día en que uno quiere ver cómo pagó.
+    base = fac.assign(venc=np.where(fac["dias_vencida"] > 0, fac["saldo"], 0),
+                      abierta=(~fac["pagada"]).astype(int))
     cta = base.groupby(["cuenta_id", "nombre", "canal", "ciudad", "vendedor"]).agg(
         saldo=("saldo", "sum"), esperado=("esperado", "sum"),
-        vencido=("venc", "sum"), facturas=("factura", "size"),
+        vencido=("venc", "sum"), facturas=("abierta", "sum"),
+        emitidas=("factura", "size"),
         dias_max=("dias_vencida", "max")).reset_index()
     # El margen y el cupo no están en la factura: viven en la ficha de la cuenta.
     # Sin ellos la matriz no se puede dibujar, porque el eje que decide no es el
@@ -250,9 +257,10 @@ def render():
     cta["riesgo_pct"] = cta["riesgo_pct"].fillna(0)
     cta["en_riesgo"] = cta["saldo"] - cta["esperado"]
 
+    mapa = cta[cta["saldo"] > 0]      # quien no debe nada no tiene lugar en la matriz
     fig3 = go.Figure()
     for canal, color in b2b.COLOR_CANAL.items():
-        d = cta[cta["canal"] == canal]
+        d = mapa[mapa["canal"] == canal]
         if d.empty:
             continue
         fig3.add_trace(go.Scatter(
@@ -266,9 +274,9 @@ def render():
                           "<br>La más vieja lleva %{customdata[4]:.0f} días"
                           "<br>Riesgo de no cobrar: %{x:.1f}%"
                           "<br>Margen del trimestre: %{y:,.0f}<extra></extra>"))
-    if len(cta):
-        fig3.add_vline(x=float(cta["riesgo_pct"].median()), line_dash="dot", line_color=CLARO)
-        fig3.add_hline(y=float(cta["servido"].median()), line_dash="dot", line_color=CLARO)
+    if len(mapa):
+        fig3.add_vline(x=float(mapa["riesgo_pct"].median()), line_dash="dot", line_color=CLARO)
+        fig3.add_hline(y=float(mapa["servido"].median()), line_dash="dot", line_color=CLARO)
     fig3.update_xaxes(title="Riesgo de no cobrar (%)")
     fig3.update_yaxes(title="Margen que deja en el trimestre")
     fig3 = light(fig3, 400)

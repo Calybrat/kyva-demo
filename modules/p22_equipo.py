@@ -97,7 +97,7 @@ def render():
                          customdata=der["servido"],
                          hovertemplate="%{y}<br>Margen servido: %{customdata:,.0f}<extra></extra>"))
     fig.update_layout(barmode="group")
-    st.plotly_chart(light(fig, 300, moneda=True), use_container_width=True)
+    st.plotly_chart(light(fig, 300, moneda=True), width="stretch", theme=None, config=PLOTLY_CONFIG)
 
     top_venta = g.nlargest(1, "neto").iloc[0]
     top_margen = g.nlargest(1, "servido").iloc[0]
@@ -145,12 +145,12 @@ def render():
 
     costo_hoy = sim["com_hoy"].sum()
     costo_nuevo = sim["com_nueva"].sum()
-    st.caption(
+    st.caption(md(
         f"Costo total de comisiones: **{cop(costo_hoy, 0)}** hoy contra "
         f"**{cop(costo_nuevo, 0)}** con este esquema. "
         f"La tasa se puede calibrar para que el costo total no cambie —lo que "
         f"cambia es **quién cobra qué**— y esa es la única forma de que el equipo "
-        f"acepte la conversación.")
+        f"acepte la conversación."))
 
     st.markdown(espacio(16), unsafe_allow_html=True)
 
@@ -171,7 +171,7 @@ def render():
                               hovertemplate="%{x} · " + canal + ": %{y:.0f}%<extra></extra>"))
     fig2.update_layout(barmode="stack")
     fig2.update_yaxes(title="% de su venta")
-    st.plotly_chart(light(fig2, 300), use_container_width=True)
+    st.plotly_chart(light(fig2, 300), width="stretch", theme=None, config=PLOTLY_CONFIG)
     st.caption(
         "La mezcla de canales de cada zona no la eligió el vendedor. En Medellín "
         "todavía no hay clubes sociales, que es el canal de mejor margen. "

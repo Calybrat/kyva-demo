@@ -62,7 +62,7 @@ def render():
                             hovertemplate="%{y:.1f}%<extra>" + canal + "</extra>")
         fig.update_layout(yaxis=dict(ticksuffix="%", range=[0, 100]))
         st.plotly_chart(light(fig, 360, "Mezcla de la venta (12 meses móviles)"),
-                        use_container_width=True)
+                        width="stretch", theme=None, config=PLOTLY_CONFIG)
     with g2:
         t = m.reset_index()
         fig = go.Figure(go.Scatter(
@@ -75,7 +75,7 @@ def render():
         fig.update_layout(xaxis=dict(title="Peso en la venta (%)", ticksuffix="%"),
                           yaxis=dict(title="Le queda de cada peso (%)", ticksuffix="%"),
                           hovermode="closest")
-        st.plotly_chart(light(fig, 360, "Tamaño contra rentabilidad"), use_container_width=True)
+        st.plotly_chart(light(fig, 360, "Tamaño contra rentabilidad"), width="stretch", theme=None, config=PLOTLY_CONFIG)
 
     # ── Tabla ────────────────────────────────────────────────────────────────
     t = m.reset_index()

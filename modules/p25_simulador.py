@@ -204,7 +204,7 @@ def render():
         increasing=dict(marker=dict(color="#2f7a48")),
         decreasing=dict(marker=dict(color=ACENTO)),
         totals=dict(marker=dict(color=PRIMARIO))))
-    st.plotly_chart(light(fig, 340, moneda=True), use_container_width=True)
+    st.plotly_chart(light(fig, 340, moneda=True), width="stretch", theme=None, config=PLOTLY_CONFIG)
 
     if perdidas:
         st.markdown('<div class="ky-sub">Qué cuentas se van y por qué</div>',

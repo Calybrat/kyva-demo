@@ -97,7 +97,7 @@ def render():
                       "%{customdata[1]} referencias<br>"
                       "Faltante para el pico: %{customdata[2]:,.0f} M<extra></extra>"))
     fig.update_xaxes(title="Días que quedan para poder pedir y que llegue antes del 1 de diciembre")
-    st.plotly_chart(light(fig, 400), use_container_width=True)
+    st.plotly_chart(light(fig, 400), width="stretch", theme=None, config=PLOTLY_CONFIG)
 
     cerradas = cat[cat["dias"] <= 0]
     esta_sem = cat[(cat["dias"] > 0) & (cat["dias"] <= 21)]
@@ -141,11 +141,11 @@ def render():
 
         exceso = sug[sug["sobra_por_minimo"] > 0]
         if len(exceso):
-            st.caption(
+            st.caption(md(
                 f"⚠ En {len(exceso)} referencias el pedido mínimo del proveedor obliga a "
                 f"comprar más de lo que falta: {cop((exceso['sobra_por_minimo'] * exceso['costo_unit']).sum(), 0)} "
                 f"de capital adicional inmovilizado. No es un error del cálculo — es la "
-                f"decisión real que hay que tomar con cada importador.")
+                f"decisión real que hay que tomar con cada importador."))
 
         t = sug.head(30)[["nombre", "categoria", "bodega", "unidades", "en_transito",
                           "faltante_neto", "minimo", "a_pedir", "costo_orden",
@@ -155,9 +155,9 @@ def render():
         t.columns = ["Referencia", "Categoría", "Bodega", "En bodega", "En camino",
                      "Falta", "Mín. proveedor", "Pedir", "Costo", "Pedir antes de", "Urgencia"]
         st.dataframe(t, hide_index=True, width="stretch")
-        st.caption(
+        st.caption(md(
             f"{len(sug)} referencias por pedir · {cop(sug['costo_orden'].sum(), 0)} en total. "
-            f"«En camino» ya está descontado de «Falta».")
+            f"«En camino» ya está descontado de «Falta»."))
 
     st.markdown(espacio(16), unsafe_allow_html=True)
 
@@ -179,8 +179,8 @@ def render():
     st.dataframe(t, hide_index=True, width="stretch")
 
     peor = p.sort_values("cumplimiento_pct").iloc[0]
-    st.caption(
+    st.caption(md(
         f"**{peor['proveedor']}** cumple el {peor['cumplimiento_pct']:.0f}% de sus fechas "
         f"y tiene {cop(peor['valor_inventario'], 0)} del inventario. Con un proveedor así "
         f"la respuesta no es comprarle más cantidad: es pedirle antes, porque el "
-        f"riesgo no es el precio, es la fecha.")
+        f"riesgo no es el precio, es la fecha."))

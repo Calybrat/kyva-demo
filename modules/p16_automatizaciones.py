@@ -155,7 +155,7 @@ def render():
         marker_color=[ACENTO if (h < 8 or h >= 19) else PRIMARIO for h in por_hora.index],
         hovertemplate="%{x}:00 · %{y} corridas<extra></extra>"))
     fig.update_xaxes(title="Hora del día", dtick=2)
-    st.plotly_chart(light(fig, 250), use_container_width=True)
+    st.plotly_chart(light(fig, 250), width="stretch", theme=None, config=PLOTLY_CONFIG)
     st.caption(
         f"En rojo, las {num(fuera)} corridas fuera del horario de oficina "
         f"({pct(fuera / max(len(eje2), 1) * 100, 0)} del total). Un bar que pide a las "

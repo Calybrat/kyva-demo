@@ -24,7 +24,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from utils.formatters import *
-from utils import b2b
+from utils import b2b, filtros, ui
 
 
 def render():
@@ -33,8 +33,12 @@ def render():
         "Rutas y costo de servir",
         "Cuánto cuesta cada entrega, por zona y por cuenta · último trimestre",
         "¿Llegamos a tiempo?"), unsafe_allow_html=True)
+    filtros.encabezado_filtro()
 
-    r = b2b.rentabilidad()
+    r = filtros.aplicar(b2b.rentabilidad(), col_mes=None)
+    if r.empty:
+        st.info("Ninguna cuenta con los filtros puestos. Quítalos en la barra lateral.")
+        return
     e = b2b.entregas()
     res = b2b.resumen_b2b()
 
@@ -105,6 +109,29 @@ def render():
         "recorrido se reparte. Una zona con dos cuentas paga el viaje completo dos "
         "veces. Eso decide dónde conviene abrir la próxima cuenta, y hoy esa "
         "decisión se toma por dónde apareció el cliente.")
+
+    st.markdown(espacio(16), unsafe_allow_html=True)
+
+    # ── El mapa ─────────────────────────────────────────────────────────────
+    # La geografía explica el costo mejor que cualquier tabla: se ve de un
+    # vistazo que la operación de Bogotá está concentrada en un corredor de
+    # ocho kilómetros y la de Medellín repartida entre El Poblado y Envigado,
+    # que es exactamente por qué una parada allá cuesta más.
+    st.markdown('<div class="ky-sub">Dónde está la operación</div>',
+                unsafe_allow_html=True)
+    ciudades = sorted(r["ciudad"].unique().tolist())
+    cc = st.columns([1, 1, 3])
+    ciudad_sel = cc[0].selectbox("Ciudad", ciudades, key="rt_ciudad")
+    metrica = cc[1].selectbox("Altura según", ["Venta", "Costo de servir"], key="rt_met")
+    ui.mapa_zonas(r, col_zona="zona",
+                  col_valor="neto" if metrica == "Venta" else "logistica",
+                  col_ciudad="ciudad", ciudad=ciudad_sel, altura=430,
+                  etiqueta=metrica)
+    st.caption(
+        "La altura de cada columna es "
+        f"{'la venta del trimestre' if metrica == 'Venta' else 'lo que cuesta repartir ahí'}. "
+        "El mapa no usa ningún proveedor de teselas: no depende de que un "
+        "servicio externo esté disponible ni de una llave de API.")
 
     st.markdown(espacio(16), unsafe_allow_html=True)
 

@@ -236,7 +236,7 @@ def render():
     with d1:
         st.download_button("⬇️  Descargar (Markdown)", texto,
                            file_name=f"kyva_{nombre}_{datos.MES_ACTUAL}.md",
-                           mime="text/markdown", use_container_width=True)
+                           mime="text/markdown", width="stretch")
     with d2:
         c = datos.cabecera()
         resumen = pd.DataFrame({"Indicador": list(c.keys()), "Valor": list(c.values())})
@@ -244,7 +244,7 @@ def render():
         resumen.to_csv(buf, index=False)
         st.download_button("⬇️  Indicadores (CSV)", buf.getvalue(),
                            file_name=f"kyva_indicadores_{datos.MES_ACTUAL}.csv",
-                           mime="text/csv", use_container_width=True)
+                           mime="text/csv", width="stretch")
 
     st.markdown(espacio(10), unsafe_allow_html=True)
     with st.container(border=True):

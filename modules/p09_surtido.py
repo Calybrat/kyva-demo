@@ -58,7 +58,7 @@ def render():
                           yaxis2=dict(overlaying="y", side="right", ticksuffix="%",
                                       range=[0, 101], showgrid=False), hovermode="closest")
         st.plotly_chart(light(fig, 360, "La curva del surtido", moneda=True),
-                        use_container_width=True)
+                        width="stretch", theme=None, config=PLOTLY_CONFIG)
     with g2:
         c = (datos.surtido().groupby("categoria")
              .agg(ingreso=("ingreso_neto", "sum"), margen=("margen", "sum"),
@@ -70,7 +70,7 @@ def render():
                                text=[pct(v) for v in c["margen_pct"]], textposition="outside"))
         fig.update_layout(xaxis=dict(ticksuffix="%"), hovermode="y unified")
         st.plotly_chart(light(fig, 360, "Margen bruto por categoría (las 10 que más venden)"),
-                        use_container_width=True)
+                        width="stretch", theme=None, config=PLOTLY_CONFIG)
 
     tab1, tab2, tab3 = st.tabs(["Las que más venden", "Las que no se mueven",
                                 "Precio Elite casi al costo"])

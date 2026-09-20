@@ -52,7 +52,7 @@ def render():
                         line=dict(color=ACENTO, width=3))
         fig.update_layout(barmode="relative")
         st.plotly_chart(light(fig, 380, "Dónde está la plata", moneda=True),
-                        use_container_width=True)
+                        width="stretch", theme=None, config=PLOTLY_CONFIG)
         st.markdown(panel(
             "Cómo leerlo",
             "Las barras de arriba son plata de KYVA inmovilizada (botellas en la bodega y "

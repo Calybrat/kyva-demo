@@ -84,7 +84,7 @@ def render():
                         hovertemplate="%{y:$,.0f}<extra>" + canal + "</extra>")
         fig.update_layout(barmode="stack")
         st.plotly_chart(light(fig, 360, "Ingresos por mes y por canal", moneda=True),
-                        use_container_width=True)
+                        width="stretch", theme=None, config=PLOTLY_CONFIG)
     with g2:
         an = datos.anual()
         an = an[an.index.isin(["2023", "2024", "2025"])]
@@ -96,7 +96,7 @@ def render():
                     marker_color=ACENTO, text=[cop(v) for v in an["utilidad_operacional"]],
                     textposition="outside", hovertemplate="%{y:$,.0f}<extra>Utilidad</extra>")
         fig.update_layout(barmode="group", yaxis=dict(showticklabels=False))
-        st.plotly_chart(light(fig, 360, "Vender más no dejó más"), use_container_width=True)
+        st.plotly_chart(light(fig, 360, "Vender más no dejó más"), width="stretch", theme=None, config=PLOTLY_CONFIG)
 
     m = datos.margen_canal()
     peor = m.sort_values("contribucion_pct").iloc[0]

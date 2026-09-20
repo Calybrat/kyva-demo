@@ -54,7 +54,7 @@ def render():
                                  tickprefix="$", tickformat=",.0f"),
                       hovermode="closest")
     st.plotly_chart(light(fig, 420, "Calidad de la base que trae cada aliado (tamaño = miembros)"),
-                    use_container_width=True)
+                    width="stretch", theme=None, config=PLOTLY_CONFIG)
 
     tabla = pd.DataFrame({
         "Aliado": t["aliado"],

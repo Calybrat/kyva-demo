@@ -25,7 +25,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from utils.formatters import *
-from utils import b2b
+from utils import b2b, filtros, ui
 
 COLOR_SALUD = {"Cuesta plata": "#8B1E1E", "Apenas paga": "#B5762F",
                "Aceptable": "#2B7A9B", "Buena": "#2f7a48"}
@@ -89,8 +89,12 @@ def render():
         "Rentabilidad por cuenta",
         "Cuánto deja cada establecimiento después de servirlo · último trimestre",
         "¿Quién nos deja plata?"), unsafe_allow_html=True)
+    filtros.encabezado_filtro()
 
-    r = b2b.rentabilidad()
+    r = filtros.aplicar(b2b.rentabilidad(), col_mes=None)
+    if r.empty:
+        st.info("Ninguna cuenta con los filtros puestos. Quítalos en la barra lateral.")
+        return
     res = b2b.resumen_b2b()
     rojas = r[r["servido"] < 0]
     apenas = r[r["salud"] == "Apenas paga"]
@@ -144,7 +148,10 @@ def render():
     fig.add_hline(y=18, line_width=1, line_dash="dot", line_color=CLARO)
     fig.update_xaxes(title="Venta neta del trimestre")
     fig.update_yaxes(title="Margen después de servir (%)")
-    st.plotly_chart(light(fig, 420), use_container_width=True)
+    ui.pista_clic("Haz clic en cualquier cuenta para abrir su ficha")
+    elegidas = ui.grafico_seleccionable(fig, "mapa_cuentas", 420)
+    if elegidas:
+        _abrir_ficha(r, elegidas[0])
     st.caption(
         "El tamaño del círculo es el número de entregas del trimestre. "
         "**Las burbujas grandes abajo a la izquierda son el problema**: cuentas "
@@ -256,3 +263,56 @@ def render():
             f"arreglarla: es <b>si se le puede vender más</b> sin subir la "
             f"frecuencia de entrega, que es donde se va el margen.",
             "✓", "azul"), unsafe_allow_html=True)
+
+
+# ── La ficha, al hacer clic en el mapa ───────────────────────────────────────
+# Existe porque un gráfico que no se puede abrir obliga a creerle a una
+# cascada. El revisor lo dijo mejor: «si no puedo bajar hasta la factura, yo no
+# puedo pelear con ese número y entonces no sirve para decidir nada».
+@st.dialog("Ficha de cuenta", width="large")
+def _abrir_ficha(r, nombre):
+    from utils import gerencia
+    c = r[r["nombre"] == nombre]
+    if c.empty:
+        st.warning(f"No encuentro {nombre}.")
+        return
+    c = c.iloc[0]
+    st.markdown(_ficha(c, None), unsafe_allow_html=True)
+
+    m = st.columns(4, gap="small")
+    for col, (etq, val) in zip(m, [
+            ("Venta trimestre", cop(c["neto"], 0)),
+            ("Entregas", f"{int(c['entregas'])}"),
+            ("Costo por entrega", cop(c["costo_por_entrega"], 0)),
+            ("Margen servido", pct(c["servido_pct"]))]):
+        col.markdown(
+            f'<div style="border:1px solid {PALIDO};border-radius:5px;padding:11px 14px">'
+            f'<div style="font-size:9.5px;font-weight:800;letter-spacing:.11em;'
+            f'text-transform:uppercase;color:{CLARO}">{etq}</div>'
+            f'<div style="font-size:19px;font-weight:800;color:{TINTA};'
+            f'margin-top:3px">{val}</div></div>', unsafe_allow_html=True)
+
+    st.markdown(espacio(14), unsafe_allow_html=True)
+    st.plotly_chart(light(_cascada(c), 300, moneda=True), use_container_width=True)
+
+    # Hasta la factura. Es lo que permite discutir el número con el vendedor.
+    try:
+        f = gerencia.facturas()
+        suyas = f[f["nombre"] == nombre].sort_values("emitida", ascending=False)
+        if len(suyas):
+            st.markdown('<div class="ky-sub">Sus facturas</div>', unsafe_allow_html=True)
+            t = suyas.head(14)[["factura", "emitida", "vence", "valor",
+                                "pagada", "dias_vencida", "tramo"]].copy()
+            t["emitida"] = suyas.head(14)["emitida"].dt.strftime("%d %b")
+            t["vence"] = suyas.head(14)["vence"].dt.strftime("%d %b")
+            t["valor"] = suyas.head(14)["valor"].map(lambda v: cop(v, 0))
+            t["pagada"] = suyas.head(14)["pagada"].map(lambda x: "✓" if x else "abierta")
+            t["dias_vencida"] = suyas.head(14)["dias_vencida"].astype(int)
+            t.columns = ["Factura", "Emitida", "Vence", "Valor", "Estado",
+                         "Días vencida", "Tramo"]
+            st.dataframe(t, hide_index=True, width="stretch")
+            abierto = float(suyas.loc[~suyas["pagada"], "saldo"].sum())
+            st.caption(md(f"{cop(abierto, 0)} abiertos en "
+                       f"{int((~suyas['pagada']).sum())} facturas."))
+    except Exception:
+        pass

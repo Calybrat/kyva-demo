@@ -5,7 +5,7 @@ from pathlib import Path
 import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).parent))
-from utils.formatters import (CSS, HEADER_CSS, asset_b64, motivo_svg,
+from utils.formatters import (CSS, CSS_PRODUCTO, HEADER_CSS, asset_b64, motivo_svg,
                               PRIMARIO, CLARO, PALIDO, ACENTO, TINTA)
 from utils.visitas import registrar_visita, panel_solicitado, render_panel_visitas
 
@@ -18,7 +18,7 @@ st.set_page_config(
 # El demo es de acceso libre: solo se deja constancia de la visita.
 registrar_visita()
 
-st.markdown(CSS + HEADER_CSS, unsafe_allow_html=True)
+st.markdown(CSS + HEADER_CSS + CSS_PRODUCTO, unsafe_allow_html=True)
 
 # Agrupado por la PREGUNTA que se hace el equipo de KYVA, no por el área que
 # produce el dato. KYVA gana plata por cuatro vías con márgenes muy distintos
@@ -73,6 +73,12 @@ GRUPOS = [
 ]
 PAGES = {label: mod for _, items in GRUPOS for label, mod in items}
 
+
+def _sin_emoji(texto: str) -> str:
+    """Quita el emoji de una etiqueta de navegación, conservando el texto."""
+    import re
+    return re.sub(r"^[^\w¿¡]+", "", texto).strip()
+
 with st.sidebar:
     logo = asset_b64("logo_blanco.svg")
     logo_html = (f'<img src="{logo}" style="height:64px;width:64px" alt="KYVA">'
@@ -87,8 +93,8 @@ with st.sidebar:
       <div style="font-family:'DM Serif Display',Georgia,serif;font-size:15px;
         color:{PALIDO};margin-top:2px;font-style:italic">join the circle</div>
       <div style="font-size:10.5px;color:{CLARO};margin-top:4px">corte 31 ago 2026</div>
-      <div style="height:2px;border-radius:99px;margin:13px 0 2px;
-        background:linear-gradient(90deg,{PALIDO} 0%,{CLARO} 50%,{ACENTO} 80%,transparent)"></div>
+      <div style="height:1px;margin:14px 0 2px;
+        background:rgba(229,225,230,.16)"></div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -109,15 +115,37 @@ with st.sidebar:
     st.markdown(f'<div style="height:1px;background:rgba(229,225,230,.14);'
                 f'margin:16px 0 4px"></div>', unsafe_allow_html=True)
 
+    # Buscador. Con veintisiete módulos se amortiza solo: escribir «cartera» es
+    # más rápido que recorrer nueve grupos con la vista.
+    q = st.text_input("Buscar", placeholder="Buscar pantalla…", key="nav_q",
+                      label_visibility="collapsed").strip().lower()
+
+    # El grupo de la pantalla actual, para abrirlo y dejar los demás cerrados.
+    grupo_actual = next((g for g, items in GRUPOS
+                         if any(l == st.session_state.page for l, _ in items)), None)
+
     for grupo, items in GRUPOS:
+        visibles = [(l, m) for l, m in items if not q or q in l.lower()]
+        if not visibles:
+            continue
         st.markdown(
-            f'<div style="font-size:9px;font-weight:700;letter-spacing:.16em;'
-            f'text-transform:uppercase;color:{CLARO};margin:15px 0 5px 4px;'
-            f'font-family:Montserrat,sans-serif">{grupo}</div>',
+            f'<div style="font-size:9px;font-weight:700;letter-spacing:.17em;'
+            f'text-transform:uppercase;color:rgba(145,147,161,.75);'
+            f'margin:19px 0 5px 6px;font-family:Montserrat,sans-serif">{grupo}</div>',
             unsafe_allow_html=True)
-        for label, _mod in items:
-            if st.button(label, key=f"nav_{label}", width="stretch"):
+        for label, _mod in visibles:
+            # El estado activo NO existía: con treinta y tres filas idénticas
+            # uno abre el panel y no sabe en qué pantalla está. `type="primary"`
+            # es lo que el CSS engancha para pintar la barra coral izquierda.
+            activo = (label == st.session_state.page)
+            # Se muestra SIN el emoji pero la clave y el estado siguen usando
+            # la etiqueta completa: veintisiete emoji distintos son veintisiete
+            # familias tipográficas peleando en una columna de 240 px.
+            visible = _sin_emoji(label)
+            if st.button(visible, key=f"nav_{label}", width="stretch",
+                         type="primary" if activo else "secondary"):
                 st.session_state.page = label
+                st.rerun()
 
     st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
     st.markdown(f"""

@@ -10,7 +10,10 @@
 base = "light"
 
 # La marca sale del logo real de kyva.co, no del ojo.
-primaryColor = "#0E113A"              # navy — el círculo del logo
+primaryColor = "#CE6264"              # coral: el color de ACCIÓN.
+                                      # El navy es la tinta del texto; usarlo
+                                      # de primario hace que cada control
+                                      # compita con lo que hay que leer.
 backgroundColor = "#FAF9FB"
 secondaryBackgroundColor = "#F4F2F5"
 textColor = "#0E113A"
@@ -32,15 +35,21 @@ linkUnderline = false
 # orden es fijo a propósito — el color debe seguir a la entidad, no a su puesto
 # en el ranking, o al filtrar por ciudad los supervivientes cambian de color y
 # el lector cree que cambió el dato.
+# Validada con OKLab y simulación de daltonismo (Machado, severidad 1.0):
+# ΔE mínimo 15,5 en visión normal y 8,8 con daltonismo, contraste sobre blanco
+# por encima de 3 en las cuatro. La anterior fallaba: coral contra gris daba
+# 14,8 con un piso de 15, y son dos canales que van pegados en cada barra
+# apilada. El navy salió de la paleta de series porque a L=0,21 no lee como
+# color sino como tinta — una barra apilada parecía un bloque negro al lado de
+# dos pasteles invisibles.
+#
+# A partir de la quinta serie NO se genera un tono nuevo: se agrupa en «Otros».
 chartCategoricalColors = [
-  "#0E113A",  # navy de marca
+  "#4F5BB5",  # índigo
   "#CE6264",  # coral de marca
-  "#2B7A9B",  # teal
-  "#B5762F",  # ámbar
-  "#7D5BA6",  # violeta
-  "#2f7a48",  # verde
-  "#8B1E1E",  # granate
-  "#9193A1",  # gris de marca
+  "#0E9A94",  # jade
+  "#8D5912",  # coñac
+  "#0E113A",  # navy — último, y solo si hace falta una quinta
 ]
 
 # Secuencial: un solo tono de claro a oscuro. Nunca arcoíris.

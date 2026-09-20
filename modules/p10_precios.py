@@ -63,7 +63,7 @@ def render():
     fig.update_layout(barmode="group", xaxis=dict(ticksuffix="%", title="KYVA frente al competidor"),
                       yaxis=dict(autorange="reversed"), hovermode="y unified")
     st.plotly_chart(light(fig, 430, "Diferencia de precio por litro (positivo = KYVA más caro)"),
-                    use_container_width=True)
+                    width="stretch", theme=None, config=PLOTLY_CONFIG)
 
     tabla = pd.DataFrame({
         "Producto": p["producto"],

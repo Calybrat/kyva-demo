@@ -72,7 +72,7 @@ def render():
             text=[pct(v, 0) for v in rr["recompra_pct"]], textposition="outside"))
         fig.update_layout(yaxis=dict(autorange="reversed"), xaxis=dict(ticksuffix="%"),
                           hovermode="y unified")
-        st.plotly_chart(light(fig, 360, "Vuelven en 6 meses, por origen"), use_container_width=True)
+        st.plotly_chart(light(fig, 360, "Vuelven en 6 meses, por origen"), width="stretch", theme=None, config=PLOTLY_CONFIG)
     with g2:
         coh = _cohortes()
         z = coh.drop(columns="Clientes")
@@ -85,7 +85,7 @@ def render():
             showscale=False))
         fig.update_layout(yaxis=dict(autorange="reversed"), hovermode="closest")
         st.plotly_chart(light(fig, 360, "Cohortes: % que compra en cada trimestre siguiente"),
-                        use_container_width=True)
+                        width="stretch", theme=None, config=PLOTLY_CONFIG)
 
     # ── Tabla de origen con economía ─────────────────────────────────────────
     t = r.reset_index()

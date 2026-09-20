@@ -57,7 +57,7 @@ def render():
                             marker_color=COLOR_MARCA[mca])
         fig.update_layout(barmode="stack")
         st.plotly_chart(light(fig, 350, "Sell-in por marca", moneda=True),
-                        use_container_width=True)
+                        width="stretch", theme=None, config=PLOTLY_CONFIG)
     with g2:
         x = [mes_es(m) for m in inv["mes"]]
         fig = go.Figure()
@@ -68,7 +68,7 @@ def render():
                         line=dict(color=PRIMARIO, width=3))
         fig.update_layout(barmode="group")
         st.plotly_chart(light(fig, 350, "Mil Demonios: compra, venta y stock (unidades)"),
-                        use_container_width=True)
+                        width="stretch", theme=None, config=PLOTLY_CONFIG)
 
     cu_t = d12.merge(cu, on="cuenta_id").groupby("tipo").agg(
         cuentas=("cuenta_id", "nunique"), ingreso=("ingreso_neto", "sum"), unidades=("unidades", "sum"))

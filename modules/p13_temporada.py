@@ -58,7 +58,7 @@ def render():
                            text="IVA 19% (1–29 ene)", showarrow=True, arrowhead=2, ay=-50,
                            font=dict(color=ACENTO, size=11))
         st.plotly_chart(light(fig, 360, "La forma del año: ingresos por mes", moneda=True),
-                        use_container_width=True)
+                        width="stretch", theme=None, config=PLOTLY_CONFIG)
     with g2:
         co = datos.corporativo()
         co25 = co[co["fecha_entrega"].dt.year == 2025]
@@ -69,7 +69,7 @@ def render():
                                text=perd.values, textposition="outside"))
         fig.update_layout(yaxis=dict(autorange="reversed"), hovermode="y unified")
         st.plotly_chart(light(fig, 360, "Por qué se perdieron cotizaciones corporativas en 2025"),
-                        use_container_width=True)
+                        width="stretch", theme=None, config=PLOTLY_CONFIG)
 
     abiertas = co[co["estado"] == "Abierta"].sort_values("valor_cotizado", ascending=False)
     t = pd.DataFrame({
