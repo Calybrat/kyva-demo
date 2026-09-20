@@ -72,7 +72,6 @@ secondaryBackgroundColor = "#1A1E4A"
 textColor = "#E5E1E6"
 primaryColor = "#CE6264"
 borderColor = "#252A5C"
-showSidebarBorder = false
 
 [browser]
 gatherUsageStats = false

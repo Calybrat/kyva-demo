@@ -329,12 +329,21 @@ def _orden_del_dia(c: pd.DataFrame, dec: pd.DataFrame, res: dict) -> str:
     aviso_n = (" — son muy pocos: el porcentaje se mueve entero con uno"
                if 0 < len(juz) <= 2 else "")
     fill_txt = pct(res["fill_rate"]) if res["fill_rate"] is not None else "—"
+    # El atraso que se dice al lado de la cartera vencida es el de ESA cartera
+    # —días vencidas de lo que sigue abierto—, no el `atraso_real` del resumen,
+    # que es la media de las facturas YA PAGADAS. Los dos números quedaban
+    # cerca por casualidad y la frase le atribuía a la cartera vencida un
+    # indicador que no era suyo.
+    cartera = (
+        f"- **Cartera vencida:** {cop(res['vencida'], 0)} en "
+        f"{res['facturas_vencidas']} facturas · {res['dias_prom']:.0f} días "
+        f"vencidas en promedio, la más vieja {res['dias_max']}"
+        if res["facturas_vencidas"] else
+        "- **Cartera vencida:** ninguna factura vencida en esta vista")
     L += ["", "## 3. Los números del periodo", "",
           f"- **Cumplimiento de compromisos:** {pct(cumpl_pct)} "
           f"({cumplidos} a tiempo de {len(juz)} con plazo cumplido{aviso_n})",
-          f"- **Cartera vencida:** {cop(res['vencida'], 0)} en "
-          f"{res['facturas_vencidas']} facturas · {res['dias_prom']:.0f} días "
-          f"vencidas en promedio, la más vieja {res['dias_max']}",
+          cartera,
           f"- **Venta perdida por quiebre ({res['ventana']}):** "
           f"{cop(res['venta_perdida'], 0)} · fill rate {fill_txt}",
           f"- **Rebate que se dejó ir:** {cop(res['rebate_perdido'], 0)} por "
@@ -414,13 +423,22 @@ def render():
     if filtros.activo() and fuera:
         om = todos[todos["dueno"].astype(str).isin(fuera)]
         om_venc = int((om["estado_real"] == "Vencido").sum())
-        st.caption(
-            f"⚠ Este filtro deja fuera **{len(om)} compromisos** "
-            f"({om_venc} vencidos, {cop(float(om['valor'].sum()), 0)} atados) de "
-            f"{', '.join(fuera)}. El selector de vendedor solo ofrece a los "
-            f"vendedores de cuenta, así que a un dueño de compras o de calidad "
-            f"no se le puede pasar lista por separado desde ahí: para verlos hay "
-            f"que quitar el filtro.")
+        aviso = (f"⚠ Este filtro deja fuera **{len(om)} compromisos** "
+                 f"({om_venc} vencidos, {cop(float(om['valor'].sum()), 0)} "
+                 f"atados) de {', '.join(fuera)}.")
+        # Y de esos, los que además no se pueden aislar con el filtro, porque
+        # el selector no los ofrece.
+        sin_opcion = [d for d in fuera
+                      if d not in set(b2b.cuentas()["vendedor"].dropna().astype(str))]
+        if sin_opcion:
+            uno = len(sin_opcion) == 1
+            aviso += (f" A {' y '.join(sin_opcion)} no se "
+                      f"{'le' if uno else 'les'} puede pasar lista por separado: "
+                      f"el selector de vendedor se arma con los vendedores de "
+                      f"cuenta y ahí no {'aparece' if uno else 'aparecen'}, así "
+                      f"que la única forma de ver{'lo' if uno else 'los'} es "
+                      f"quitar el filtro.")
+        st.caption(aviso)
 
     st.markdown(espacio(16), unsafe_allow_html=True)
 
@@ -440,7 +458,7 @@ def render():
         # se nombra cuando hay alguno: un cero mudo en la tarjeta que abre el
         # comité gasta una línea para no decir nada.
         f"{a_tiempo} a tiempo de {len(juz)}" +
-        (f" · {tarde} cerrados tarde" if tarde else ""),
+        (f" · {tarde} cerrado{'s' if tarde > 1 else ''} tarde" if tarde else ""),
         cumpl_pct >= 70, "✓",
         "Cerrados dentro del plazo sobre los que ya se vencieron.",
         "El porcentaje es sobre muy pocos compromisos"
@@ -522,9 +540,10 @@ def render():
                             "ahí el porcentaje no distingue a quien cumple de "
                             "quien tuvo suerte.")
         st.caption(
-            f"El porcentaje es lo cerrado **dentro del plazo**. Cerrar tarde "
-            f"aparece aparte en ámbar a propósito: si contara como cumplir, el "
-            f"indicador se limpia solo el lunes por la mañana. " + comparacion)
+            f"El porcentaje es lo cerrado **dentro del plazo**. Cerrar tarde se "
+            f"cuenta aparte —en ámbar, en cuanto haya alguno— a propósito: si "
+            f"contara como cumplir, el indicador se limpia solo el lunes por la "
+            f"mañana. " + comparacion)
 
         st.markdown(espacio(14), unsafe_allow_html=True)
         st.markdown('<div class="ky-sub">Por área</div>', unsafe_allow_html=True)
@@ -545,17 +564,25 @@ def render():
         })
         st.dataframe(t, hide_index=True, width="stretch")
 
+        # El texto no reparte áreas a mano —«cartera depende de un tercero,
+        # logística se ejecuta en casa»— porque con un filtro puesto nombraba
+        # áreas que ni siquiera están en la tabla, y si el área más floja
+        # resultaba ser la que ponía de contraejemplo, el párrafo se
+        # contradecía solo. El criterio se dice sin nombres: es igual de útil y
+        # es cierto en las seis combinaciones de filtro.
         floja = ar.iloc[0]
         st.markdown(panel(
             "Lo que dice el reparto por área",
             f"<b>{floja['area']}</b> cierra a tiempo {pct(floja['cumple'], 0)} de "
-            f"lo que se compromete. Antes de sacar conclusiones sobre la persona "
-            f"hay que mirar el tipo de compromiso: los de cartera y calidad "
-            f"dependen de que un tercero conteste, los de logística se ejecutan "
-            f"solos dentro de la casa. <b>Un área que nunca cumple no siempre "
-            f"tiene un problema de disciplina; a veces tiene un problema de "
-            f"plazos que se pactan sin preguntarle.</b> El comité que sirve es "
-            f"el que cambia el plazo, no el que repite el reclamo.",
+            f"lo que se compromete, sobre {int(floja['total'])} compromisos con "
+            f"el plazo ya cumplido. Antes de sacar conclusiones sobre la persona "
+            f"hay que mirar el tipo de compromiso: los que dependen de que "
+            f"conteste un tercero —un cliente que paga, un proveedor que "
+            f"responde— no se cumplen al mismo ritmo que los que se ejecutan "
+            f"dentro de la casa. <b>Un área que nunca cumple no siempre tiene un "
+            f"problema de disciplina; a veces tiene un problema de plazos que se "
+            f"pactan sin preguntarle.</b> El comité que sirve es el que cambia "
+            f"el plazo, no el que repite el reclamo.",
             "📐", "azul"), unsafe_allow_html=True)
 
     st.markdown(espacio(16), unsafe_allow_html=True)
@@ -593,7 +620,16 @@ def render():
             f"{'⚠ ' if r['estado_real'] == 'Vencido' else ''}{r['id']} · "
             f"{r['compromiso'][:72]} — {r['dueno']}"
             for _, r in abiertos.iterrows()]
-        with st.form("cerrar_compromiso", clear_on_submit=True):
+        # `clear_on_submit` borraba el campo ANTES de que corriera la validación
+        # de abajo: quien escribía un resultado de doce caracteres recibía «falta
+        # el resultado» con el texto ya perdido y tenía que reescribirlo entero,
+        # que en una demostración en vivo es justo donde se traba el que presenta.
+        # Se limpia a mano y solo cuando el cierre se guardó de verdad; la bandera
+        # se consume antes de crear el widget porque después Streamlit no deja
+        # tocarle el estado.
+        if st.session_state.pop("cm_limpiar_cierre", False):
+            st.session_state["cm_resultado"] = ""
+        with st.form("cerrar_compromiso", clear_on_submit=False):
             elegido = st.selectbox("Compromiso", etiquetas, key="cm_cerrar")
             resultado = st.text_area(
                 "Qué pasó", height=90, key="cm_resultado",
@@ -608,6 +644,7 @@ def render():
                            "si la decisión funcionó.")
             else:
                 _cerrar(fila, resultado.strip())
+                st.session_state["cm_limpiar_cierre"] = True
                 # Toast y no st.success: el st.rerun() que refresca la lista de
                 # arriba se lleva por delante cualquier mensaje de la página.
                 st.toast(f"{fila['id']} cerrado con resultado.")
@@ -637,11 +674,19 @@ def render():
     # La lista de personas sale de TODOS los compromisos, no de los filtrados:
     # con un filtro de ciudad puesto no se puede dejar de asignarle a alguien.
     personas = sorted({str(d) for d in todos["dueno"].dropna() if str(d).strip()})
-    with st.form("nuevo_compromiso", clear_on_submit=True):
+    # Mismo motivo que arriba: el texto sobrevive a la validación y se limpia
+    # solo cuando el compromiso quedó anotado.
+    if st.session_state.pop("cm_limpiar_nuevo", False):
+        st.session_state["cm_texto"] = ""
+        st.session_state["cm_valor"] = 0
+    with st.form("nuevo_compromiso", clear_on_submit=False):
         f1 = st.columns([3, 1.3], gap="small")
         texto = f1[0].text_input(
+            # El ejemplo no puede contradecir lo que se ve en la misma pantalla:
+            # Envy Rooftop tiene 34,9% de descuento en `cuentas.csv` y su
+            # renegociación ya está arriba, en rojo, como CM-021.
             "Compromiso", key="cm_texto",
-            placeholder="Renegociar el descuento de Envy Rooftop de 24% a 19%")
+            placeholder="Cobrar la factura vencida de Villanos en Bermudas antes del viernes")
         dueno = f1[1].selectbox("Dueño", personas, key="cm_dueno")
         f2 = st.columns([1.3, 1.3, 2], gap="small")
         fecha = f2[0].date_input("Vence", value=(HOY + pd.Timedelta(days=7)).date(),
@@ -661,6 +706,7 @@ def render():
             dias = max((fecha - HOY.date()).days, 1)
             estado.nuevo_compromiso(texto.strip(), dueno, dias=dias,
                                     valor=float(valor), origen="Comité")
+            st.session_state["cm_limpiar_nuevo"] = True
             st.toast(f"Anotado para {dueno}: vence en {dias} días y sobrevive al "
                      f"cierre del navegador.")
             st.rerun()
@@ -677,7 +723,7 @@ def render():
     st.markdown('<div class="ky-sub">El orden del día del lunes</div>',
                 unsafe_allow_html=True)
     dec = filtros.aplicar(b2b.decisiones())
-    agenda = _orden_del_dia(c, dec, res)
+    agenda = _orden_del_dia(c, dec, _cifras())
 
     d1, d2 = st.columns([1.4, 3], gap="small")
     d1.download_button("⬇️  Descargar el orden del día", agenda,

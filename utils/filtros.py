@@ -47,16 +47,28 @@ def _estado() -> dict:
     return st.session_state[CLAVE]
 
 
-def activo() -> bool:
+def activo(ignorar: tuple = ()) -> bool:
     e = _estado()
-    return any(e[k] != VACIO[k] for k in ("ciudad", "canal", "vendedor"))
+    return any(e[k] != VACIO[k] for k in ("ciudad", "canal", "vendedor")
+               if k not in ignorar)
 
 
-def resumen() -> str:
+def resumen(ignorar: tuple = ()) -> str:
     e = _estado()
     partes = [v for k, v in e.items()
-              if k != "periodo" and v != VACIO[k]]
+              if k != "periodo" and k not in ignorar and v != VACIO[k]]
     return " · ".join(partes) if partes else "Toda la operación"
+
+
+def elegido(clave: str) -> str:
+    """Lo que está puesto en un filtro, o cadena vacía si no acota nada.
+
+    Lo necesita el módulo que NO puede aplicar un filtro —presupuesto no tiene
+    vendedor— para poder decirlo en pantalla en vez de mostrar media pantalla
+    filtrada y la otra media no.
+    """
+    e = _estado()
+    return "" if e.get(clave, VACIO.get(clave)) == VACIO.get(clave) else str(e[clave])
 
 
 def barra(cuentas: pd.DataFrame) -> None:
@@ -82,14 +94,18 @@ def barra(cuentas: pd.DataFrame) -> None:
         st.rerun()
 
 
-def aviso() -> str:
+def aviso(ignorar: tuple = ()) -> str:
     """La cinta que avisa que lo que se ve NO es toda la empresa.
 
     Es lo que impide el error caro: decidir sobre un tercio del negocio creyendo
     que se vio entero. Un panel filtrado que parece completo es peor que uno sin
     filtros.
+
+    `ignorar` es para el módulo cuyo dato no tiene esa dimensión: anunciar
+    «Vista filtrada: Andrea Restrepo» en una pantalla que no puede filtrar por
+    vendedor es exactamente el engaño que esta cinta existe para evitar.
     """
-    if not activo():
+    if not activo(ignorar):
         return ""
     e = _estado()
     return (
@@ -97,7 +113,7 @@ def aviso() -> str:
         f'padding:7px 15px;margin:0 0 14px;font-size:11.5px;font-weight:700;'
         f'font-family:Montserrat,sans-serif;letter-spacing:.02em;'
         f'display:flex;justify-content:space-between;align-items:center">'
-        f'<span>⚠ Vista filtrada: <b>{resumen()}</b> · {e["periodo"].lower()}</span>'
+        f'<span>⚠ Vista filtrada: <b>{resumen(ignorar)}</b> · {e["periodo"].lower()}</span>'
         f'<span style="opacity:.8;font-weight:600">no es la operación completa</span>'
         f'</div>')
 
@@ -107,12 +123,18 @@ def desde() -> str:
     return PERIODOS[_estado()["periodo"]]
 
 
-def aplicar(df: pd.DataFrame, col_mes: str = "mes") -> pd.DataFrame:
+def aplicar(df: pd.DataFrame, col_mes: str = "mes",
+            ignorar: tuple = ()) -> pd.DataFrame:
     """Aplica lo que esté puesto. Los módulos no tienen que saber nada más.
 
     Solo filtra por las columnas que el DataFrame tenga: así sirve igual para
     ventas, facturas, quiebres o punto de venta, que traen combinaciones
     distintas de ciudad/canal/vendedor.
+
+    `ignorar` deja fuera una dimensión A PROPÓSITO. Es para el caso en que una
+    tabla sí tiene la columna y la otra no —ventas tiene vendedor, presupuesto
+    no—: filtrar solo la mitad que puede deja media pantalla hablando de una
+    persona y la otra media de la empresa entera, que es peor que no filtrar.
     """
     e = _estado()
     d = df
@@ -120,13 +142,15 @@ def aplicar(df: pd.DataFrame, col_mes: str = "mes") -> pd.DataFrame:
         d = d[d[col_mes] >= PERIODOS[e["periodo"]]]
     for col, val in (("ciudad", e["ciudad"]), ("canal", e["canal"]),
                      ("vendedor", e["vendedor"])):
+        if col in ignorar:
+            continue
         if val not in ("Todas", "Todos") and col in d.columns:
             d = d[d[col] == val]
     return d
 
 
-def encabezado_filtro() -> None:
+def encabezado_filtro(ignorar: tuple = ()) -> None:
     """Pinta el aviso. Se llama al principio de cada módulo que filtra."""
-    a = aviso()
+    a = aviso(ignorar)
     if a:
         st.markdown(a, unsafe_allow_html=True)

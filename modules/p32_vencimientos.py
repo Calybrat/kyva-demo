@@ -182,6 +182,23 @@ def _accion(r, canal: str):
     return "Empujar al canal", f"{canal} es donde rota esta categoría"
 
 
+def _lista(nombres) -> str:
+    """Enumera categorías sin producir «champaña y espumosos y vino».
+
+    Dos nombres del maestro ya traen una «y» adentro —«Champaña y espumosos»,
+    «Mixers y aguas»—, así que unirlos con «y» arma un trabalenguas. Y cuando
+    una categoría se lleva el grueso, nombrar la segunda estorba más de lo que
+    informa: la frase queda «casi todo cerveza», que es lo que pasa de verdad.
+    """
+    n = list(nombres)
+    if not n:
+        return ""
+    if len(n) == 1:
+        return n[0]
+    sep = ", y " if any(" y " in x for x in n) else " y "
+    return sep.join(n)
+
+
 def _fecha(d) -> str:
     """dd mmm aaaa en español: el locale del servidor no es de fiar."""
     try:
@@ -244,21 +261,25 @@ def render():
 
     k = st.columns(4, gap="small")
     k[0].markdown(kpi(
-        "Se vence antes de venderse", cop(venc_total, 0),
+        "Se vence antes de venderse", cop(venc_total),
         (f"{num(len(fecha))} lotes con {HORIZONTE} días o menos de vida útil"
          if len(fecha) else "ningún lote con fecha encima tiene sobrante"),
         venc_total <= 0, "⏳",
         "Unidades que la demanda de hoy no alcanza a vender antes de la fecha, "
         "contadas solo donde la fecha manda: seis meses o menos de vida útil. "
         "No es el valor del lote, es la parte que sobra.",
-        f"{pct(venc_total / max(val_pere, 1) * 100)} del inventario que caduca · "
-        f"en distribución de bebidas lo normal va de 0,5% a 2%"),
+        (f"{pct(venc_total / max(val_pere, 1) * 100)} del inventario que caduca · "
+         f"en distribución de bebidas lo normal va de 0,5% a 2%" if venc_total > 0
+         else "cero merma proyectada · en distribución de bebidas lo normal va "
+              "de 0,5% a 2% del inventario que caduca")),
         unsafe_allow_html=True)
     k[1].markdown(kpi(
         "Vence en 90 días", cop(noventa["valor"].sum(), 0),
-        (f"{num(len(noventa))} lotes · {cop(noventa['en_riesgo'].sum(), 0)} sin salida"
+        (f"{num(len(noventa))} lotes · {cop(noventa['en_riesgo'].sum())} sin salida"
+         if float(noventa["en_riesgo"].sum()) > 0 else
+         f"{num(len(noventa))} lotes, y la demanda alcanza a consumirlos todos"
          if len(noventa) else "ningún lote entra a la ventana de 90 días"),
-        len(noventa) == 0, "📆",
+        float(noventa["en_riesgo"].sum()) <= 0, "📆",
         "Valor completo de los lotes con fecha encima. La mayoría se vende "
         "sola; lo que importa es el segundo número."), unsafe_allow_html=True)
     k[2].markdown(kpi(
@@ -339,9 +360,9 @@ def render():
          f"como los publican esas dos pantallas; los de arriba sí respetan el "
          f"filtro.</i><br><br>" if filtros.activo() else "") +
         f"<b>El comité del lunes y el centro de decisiones dicen "
-        f"{cop(u_critico, 0)}</b> de «inventario en riesgo de vencimiento». Usan "
+        f"{cop(u_critico)}</b> de «inventario en riesgo de vencimiento». Usan "
         f"la definición estrecha: solo lotes en estado Crítico o Vencido, 45 días "
-        f"o menos. Es un subconjunto de los <b>{cop(u_venc, 0)}</b> de esta "
+        f"o menos. Es un subconjunto de los <b>{cop(u_venc)}</b> de esta "
         f"pantalla, que estira la ventana hasta {HORIZONTE} días. Los dos números "
         f"son correctos y miden lo mismo con distinto alcance: el de allá sirve "
         f"para «qué firmo esta semana», el de aquí para «qué armo este "
@@ -609,12 +630,19 @@ def render():
     # no cuadraba ni con colocación total ni con la del slider.
     rec_eq = lista * (1 - equilibrio / 100) * colocacion / 100 / max(costo_hundido, 1) * 100
     rec_40 = lista * (1 - DESCUENTOS[-1]) * colocacion / 100 / max(costo_hundido, 1) * 100
+    # A colocación total el extremo bueno es 100% por definición —el equilibrio
+    # es justo donde el ingreso iguala al costo hundido— y el malo sale del mix.
+    tope_txt = (f" Subir el control de arriba al 100% mueve las dos puntas al "
+                f"{pct(lista * (1 - DESCUENTOS[-1]) / max(costo_hundido, 1) * 100, 0)} "
+                f"y al {pct(100, 0)}." if colocacion < 100 else "")
     st.markdown(panel(
         "A partir de qué descuento conviene, y contra qué se compara",
         f"El costo de ese sobrante —<b>{cop(costo_hundido, 0)}</b>— ya está "
-        f"pagado. No se recupera dejándolo en la bodega: si se vence, entra "
-        f"{cop(0)}. Por eso la comparación correcta no es «¿me deja margen?» "
-        f"sino «¿cuánto de esa plata vuelve?».<br><br>"
+        f"pagado, y no se recupera dejándolo en la bodega. De ahí, "
+        f"{cop(venc_total)} se vence antes de venderse: si nadie lo saca, entra "
+        f"{cop(0)}. El resto no se va a vencer pronto, pero sigue amarrando caja "
+        f"cada mes que espera. Por eso la comparación correcta no es «¿me deja "
+        f"margen?» sino «¿cuánto de esa plata vuelve, y cuándo?».<br><br>"
         f"<b>Hasta {pct(equilibrio, 0)} de descuento la venta todavía deja "
         f"margen positivo</b>: es el margen ponderado real de estos lotes. Ojo "
         f"con la lectura fácil: el descuento <b>sí cuesta</b> —cuesta exactamente "
@@ -623,8 +651,7 @@ def render():
         f"vende bajo costo: colocando el {colocacion}% del sobrante entra entre "
         f"el <b>{pct(rec_40, 0)}</b> y el <b>{pct(rec_eq, 0)}</b> del costo "
         f"hundido en vez de cero, y eso es una decisión de caja, no de "
-        f"rentabilidad. Subir el control de arriba al 100% mueve las dos puntas "
-        f"al 84% y al 100%.<br><br>"
+        f"rentabilidad.{tope_txt}<br><br>"
         f"Dos advertencias que cambian el número: el descuento se aplica "
         f"<b>solo a las unidades que sobran</b>, nunca al lote completo, porque "
         f"lo demás se vende a precio de lista sin ayuda; y el 20% no mueve "
@@ -667,14 +694,21 @@ def render():
         st.rerun()
 
     st.markdown(espacio(10), unsafe_allow_html=True)
+    def _dominantes(serie) -> list:
+        """Las categorías que hay que nombrar: una si se lleva el grueso, si no dos."""
+        s = serie.sort_values(ascending=False)
+        if s.empty or s.sum() <= 0:
+            return []
+        n = 1 if s.iloc[0] / s.sum() >= 0.70 else 2
+        return [c.lower() for c in s.head(n).index]
+
     urgentes = det[det["dias_para_vencer"] <= 60]
-    cat_urg = [c.lower() for c in urgentes["categoria"].value_counts().head(2).index]
-    cat_det = [c.lower() for c in detenido.groupby("categoria")["en_riesgo"]
-               .sum().sort_values(ascending=False).head(2).index]
+    cat_urg = _dominantes(urgentes["categoria"].value_counts())
+    cat_det = _dominantes(detenido.groupby("categoria")["en_riesgo"].sum())
     bloque_fecha = (
         f"Con fecha encima —sesenta días o menos— hay "
-        f"<b>{num(len(urgentes))} lotes por {cop(urgentes['en_riesgo'].sum(), 0)}</b>"
-        + (f", casi todo {' y '.join(cat_urg)}, que es donde vive la vida útil "
+        f"<b>{num(len(urgentes))} lotes por {cop(urgentes['en_riesgo'].sum())}</b>"
+        + (f", casi todo {_lista(cat_urg)}, que es donde vive la vida útil "
            f"corta" if cat_urg else "") +
         f". Eso es lo que hay que sacar esta semana y cabe en una sola promoción."
         if len(urgentes) else
@@ -686,7 +720,7 @@ def render():
             f"El otro lado del calendario es más grande y es otro problema: "
             f"<b>{cop(det_total, 0)} en {num(len(detenido))} lotes</b> sin una "
             f"sola venta en noventa días y con más de seis meses de vida útil"
-            + (f", sobre todo {' y '.join(cat_det)}" if cat_det else "") +
+            + (f", sobre todo {_lista(cat_det)}" if cat_det else "") +
             f". Ese producto <b>no se va a vencer</b> —la mediana tiene "
             f"{num(detenido['dias_para_vencer'].median() / 365, 1)} años por "
             f"delante— y presentarlo como merma es lo que hace que el comité deje "

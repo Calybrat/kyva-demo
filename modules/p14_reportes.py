@@ -11,6 +11,7 @@ import streamlit as st
 
 from utils.formatters import *
 from utils import datos
+from utils import exportar
 
 REPORTES = {
     "Comité del lunes (semanal)":
@@ -249,3 +250,19 @@ def render():
     st.markdown(espacio(10), unsafe_allow_html=True)
     with st.container(border=True):
         st.markdown(texto)
+
+    # ── El libro para la junta ──────────────────────────────────────────────
+    # Un director de operaciones no vive en el panel: vive en el correo y en
+    # Loggro. Si el martes tiene junta necesita LLEVARSE los números, y un panel
+    # del que no se puede sacar nada obliga a rehacer las tablas a mano.
+    st.markdown(espacio(18), unsafe_allow_html=True)
+    st.markdown('<div class="ky-sub">Llevárselo a la junta</div>',
+                unsafe_allow_html=True)
+    c = st.columns([1.6, 3])
+    with c[0]:
+        exportar.boton(st, clave="dl_libro_reportes")
+    c[1].caption(
+        "Siete hojas con portada, encabezado congelado, filtro automático y "
+        "formatos de moneda: cuentas, cartera abierta, marcas y rebate, "
+        "presupuesto, compromisos, quiebres y lotes por vencer. "
+        "El archivo se arma al pulsar, no al abrir la pantalla.")

@@ -251,7 +251,7 @@ def _bandeja() -> pd.DataFrame:
             "costo_inaccion": plata, "costo_txt": texto,
             "decide": r["decide"], "quien": r.get("cuenta", ""),
             "sugerido": r.get("vendedor", ""), "origen": "Análisis de cuentas",
-            "ambito": "",
+            "ambito": "Por ciudad y vendedor",
         })
 
     # 2. Cartera: lo vencido por encima del umbral de bloqueo, por cuenta
@@ -551,6 +551,13 @@ def _tarjeta(r, dec):
     else:
         pie = (f'Decide: <b style="color:{TINTA}">{r["decide"]}</b>' +
                (f' &nbsp;·&nbsp; {r["quien"]}' if r["quien"] else ""))
+    # Hasta dónde llega el filtro global en esta fila. Va junto al origen y no
+    # en una nota al pie: una fila de cuota de marca sigue siendo de la
+    # compañía entera aunque la cinta de arriba diga «Medellín», y quien lee
+    # tiene que saberlo en la misma línea donde lee de dónde salió. Sin filtro
+    # puesto no se pinta: ahí no hay nada que advertir y sería ruido.
+    ambito = (f' &nbsp;·&nbsp; <span style="color:{ACENTO}">{r["ambito"]}</span>'
+              if r.get("ambito") and filtros.activo() else "")
     return f"""
     <div style="{apagado}border:1px solid {PALIDO};border-left:4px solid {color};
          border-radius:5px;padding:15px 18px;margin-bottom:6px;background:#fff">
@@ -606,7 +613,7 @@ def _grafico_plata(b, comprometidas, aplazadas):
     fig.update_layout(barmode="stack")
     # El eje va en millones a mano: con `moneda=True` el formateo solo toca el
     # eje Y, y en barras horizontales la plata está en el X.
-    fig.update_xaxes(title="Plata en juego, anualizada", tickprefix="$",
+    fig.update_xaxes(title="Utilidad en riesgo a doce meses", tickprefix="$",
                      ticksuffix=" M", tickformat=",.0f")
     return fig
 
@@ -618,6 +625,18 @@ def render():
         "Lo que espera que alguien decida, ordenado por la plata que cuesta no decidirlo",
         "El lunes a las 7"), unsafe_allow_html=True)
     filtros.encabezado_filtro()
+    if filtros.activo():
+        # La cinta de arriba afirma un filtro que no todas las fuentes pueden
+        # aplicar: el inventario está por bodega y no tiene canal, y la cuota
+        # con una marca no tiene geografía. Decirlo aquí —y en cada tarjeta—
+        # es la diferencia entre una vista filtrada y una vista que miente.
+        st.caption(md(
+            "Hasta dónde llega el filtro: **cartera** lo aplica entero; "
+            "**cuentas** por ciudad y vendedor; **compras y vencimientos** solo "
+            "por ciudad, porque el inventario está por bodega; **presupuesto** "
+            "por canal y ciudad; y **marcas, excepciones y precios** no se "
+            "filtran —una cuota con el proveedor o una regla de automatización "
+            "son de la compañía entera—. Cada fila lo dice al lado de su origen."))
 
     b = _bandeja()
     if b.empty:
@@ -634,10 +653,14 @@ def render():
     pendientes = b[~b["clave"].isin(set(dec))]
 
     total = float(b["costo_inaccion"].sum())
-    cerrado = float(b.loc[b["clave"].isin(comprometidas), "costo_inaccion"].sum())
+    # `cerrado` sale de la bandeja que se está viendo, no del archivo. Antes el
+    # KPI contaba todo lo guardado en disco y el pie del gráfico solo lo que
+    # estaba a la vista: los dos números divergían en cuanto un filtro sacaba
+    # de la pantalla una fila ya decidida.
+    en_vista = comprometidas & set(b["clave"])
+    cerrado = float(b.loc[b["clave"].isin(en_vista), "costo_inaccion"].sum())
     abierto = total - cerrado
     altas = int((pendientes["urgencia"] == "Alta").sum())
-    comprometido = sum(float(dec[c].get("valor", 0) or 0) for c in comprometidas)
 
     k = st.columns(4, gap="small")
     pospuestas = int(b["clave"].isin(aplazadas).sum())
@@ -650,23 +673,29 @@ def render():
         unsafe_allow_html=True)
     k[1].markdown(kpi(
         "En juego", cop(abierto, 0),
-        "anualizado, si nadie las toca", False, "💰",
-        "La suma de lo que cuesta no decidir cada una. Lo aplazado sigue "
-        "contando aquí: aplazar no mueve la plata de sitio.",
+        "utilidad en riesgo a doce meses", False, "💰",
+        "Todas las filas están en la misma unidad: la venta de una cuenta que "
+        "se apagó y el costo de una mercancía que falta se convierten a margen "
+        "antes de sumarse. Lo aplazado sigue contando: aplazar no mueve la "
+        "plata de sitio.",
         "Es lo que ordena la bandeja — no la gravedad declarada"),
         unsafe_allow_html=True)
     k[2].markdown(kpi(
-        "Con dueño y fecha", num(len(comprometidas)),
-        cop(comprometido, 0) + " comprometidos", len(comprometidas) > 0, "✍️",
-        "Guardadas en disco, no en el navegador: siguen aquí el lunes aunque "
-        "se cierre la pestaña.",
+        "Con dueño y fecha", num(len(en_vista)),
+        cop(cerrado, 0) + " comprometidos", len(en_vista) > 0, "✍️",
+        "De las que están a la vista. Guardadas en disco, no en el navegador: "
+        "siguen aquí el lunes aunque se cierre la pestaña.",
         "Cada una generó un compromiso con nombre y plazo"), unsafe_allow_html=True)
-    fuentes = b["origen"].nunique()
+    # El número y el texto salen de la misma lista: antes el KPI era dinámico
+    # —con un filtro de ciudad bajaba a cinco— y la ayuda seguía enumerando
+    # ocho sistemas fijos. Un número que se desmiente al pasar el mouse.
+    fuentes = sorted(b["origen"].unique())
     k[3].markdown(kpi(
-        "Sistemas que se consultan", num(fuentes),
-        "en una sola bandeja", True, "🔗",
-        "ERP, logística, cartera, cuotas de marca, lotes, presupuesto, compras "
-        "y precios. Hoy son ocho pestañas distintas y por eso nada se decide."),
+        "Sistemas que se consultan", num(len(fuentes)),
+        "con algo que decidir, en una sola bandeja", True, "🔗",
+        "Hoy cada uno es una pestaña distinta y por eso nada se decide. En "
+        "esta vista aportan filas: " + ", ".join(f.lower() for f in fuentes)
+        + ". Los que no aparecen se consultaron y no tenían nada."),
         unsafe_allow_html=True)
 
     st.markdown(espacio(18), unsafe_allow_html=True)
@@ -691,7 +720,13 @@ def render():
         "orden: aquí manda la plata en juego, no la gravedad que declare cada "
         "sistema. Una alerta «alta» de cuatrocientos mil pesos no puede ir encima "
         "de una «media» de catorce millones — y en sistemas separados eso pasa "
-        "todos los días, que es exactamente por lo que nadie las lee.",
+        "todos los días, que es exactamente por lo que nadie las lee.<br><br>"
+        "Para que ese orden signifique algo, todas las filas están en la misma "
+        "unidad: <b>utilidad en riesgo a doce meses</b>. La venta anual de una "
+        "cuenta que se apagó entra a margen; el faltante de una compra, que está "
+        "valorado al costo, entra por el margen de la venta que no va a ocurrir. "
+        "Sumar venta con margen y con costo de mercancía da un número grande que "
+        "no quiere decir nada.",
         "📋", "azul"), unsafe_allow_html=True)
 
     st.markdown(panel(
@@ -737,8 +772,8 @@ def render():
     plazos = list(PLAZOS)
 
     if sel.empty:
-        st.success("Nada pendiente con ese filtro. La bandeja en cero es el objetivo, "
-                   "no la excepción.")
+        st.success("Nada pendiente con ese filtro. Vale la pena revisar los otros "
+                   "tipos antes de cerrar la pantalla.")
 
     for _, r in sel.iterrows():
         clave = r["clave"]
@@ -801,13 +836,17 @@ def render():
         st.caption("Todavía no hay decisiones registradas. Cada una que se tome "
                    "aquí queda con dueño, fecha y el número que la justificaba.")
     else:
-        titulos = dict(zip(b["clave"], b["titulo"]))
+        # Lo que se muestra es lo que se registró ENTONCES, no el titular de
+        # hoy. La versión anterior prefería el título recalculado de la
+        # bandeja: si Gótica pasaba de 31 a 45 días de mora, la tabla decía que
+        # en septiembre se había decidido sobre 45 días. Una tabla que sirve
+        # para contestar en enero por qué se bajó un descuento en septiembre no
+        # puede reescribir septiembre con los datos de enero.
         reg = pd.DataFrame([{
             "Cuándo": v.get("cuando", ""),
-            "Qué se decidió": titulos.get(c, v.get("nota", "") or c),
+            "Qué se decidió": v.get("nota", "") or c,
             "Acción": v.get("accion", ""),
             "Dueño": v.get("quien", ""),
-            "Se acordó": v.get("nota", ""),
             "Plata que estaba en juego": cop(v.get("valor", 0), 0),
         } for c, v in dec.items()])
         reg = reg.sort_values("Cuándo", ascending=False)

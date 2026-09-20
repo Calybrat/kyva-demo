@@ -68,10 +68,55 @@ MOTIVO_QUIEBRE = {
     "Comprometido en otro pedido": 0.19, "Lote vencido retirado": 0.09,
     "Error de inventario": 0.07,
 }
-POP = ["Nevera exhibidora", "Habladores de barra", "Cenefa", "Menú de coctelería",
-       "Backbar iluminado", "Copas de marca", "Ninguno"]
-COMPETENCIA = ["Dislicores", "La Licorera", "Quality Brands", "Distrisegovia",
-               "Compra directa importador", "Ninguna"]
+# ── Lo que mueve la rotación dentro del bar ──────────────────────────────────
+# Pieza de POP, competidor en la barra y semanas sin que nadie chequee el
+# estante, cada uno con su frecuencia y con lo que le hace a la rotación.
+#
+# El multiplicador NO es decorativo: mientras `pop` y `competencia` se sortearon
+# sin relación con la rotación, el «+24% que devuelve el POP» que anunciaba p31
+# era ruido —una prueba de permutación lo tumbaba— y con él se caía la mitad de
+# la pantalla. Un panel puede mostrar un hallazgo débil; no puede mostrar uno
+# que por construcción no existe.
+POP = [  # pieza, con qué frecuencia aparece, qué le hace a la rotación
+    ("Backbar iluminado",   .06, 1.40),
+    ("Nevera exhibidora",   .09, 1.34),
+    ("Menú de coctelería",  .11, 1.16),
+    ("Habladores de barra", .17, 1.10),
+    ("Cenefa",              .14, 1.02),
+    # La pieza que no se defiende: cuesta como las demás y no mueve el estante.
+    # Es el contraejemplo que impide leer «POP» como una sola cosa.
+    ("Copas de marca",      .13, 0.86),
+    ("Ninguno",             .30, 0.78),
+]
+COMPETENCIA = [
+    ("Ninguna",                   .38, 1.06),
+    # La Licorera está donde están las buenas barras. Compartir estante con
+    # ellos no nos cuesta, y eso es lo que impide leer «competencia adentro»
+    # como sinónimo de problema.
+    ("La Licorera",               .16, 1.12),
+    ("Quality Brands",            .11, 0.98),
+    ("Distrisegovia",             .09, 0.92),
+    ("Compra directa importador", .07, 0.84),
+    ("Dislicores",                .19, 0.70),
+]
+
+# El sobreprecio de carta lo decide primero la categoría y después el bar: un
+# mixer se monta a tres veces y un single malt no aguanta ni el doble. Sobre esa
+# base cada cuenta tiene su postura de precio, y ESA es la dispersión que
+# persigue el módulo — el mismo producto a dos precios a tres cuadras.
+MARGEN_CARTA = {
+    "Mixers y aguas": 3.05, "Cerveza": 2.80, "Aguardiente": 2.45,
+    "Licores y aperitivos": 2.35, "Vino": 2.25, "Champaña y espumosos": 2.20,
+    "Ron": 2.10, "Ginebra": 2.10, "Vodka": 2.05, "Tequila y mezcal": 2.00,
+    "Cognac, brandy y pisco": 2.00, "Whisky": 1.90,
+}
+
+# Qué parte de lo que la cuenta nos compra al mes cubren las tres a ocho
+# referencias que el vendedor alcanza a levantar parado en la barra. El resto de
+# la factura son referencias que no están en esta foto. Es el ancla que hace que
+# la plata de p31 se pueda cotejar contra el ERP sin que la reunión se caiga:
+# antes el módulo mostraba diez veces la venta de toda la empresa.
+PARTE_DE_LA_CARTA = 0.46
 
 
 # ── 1. Facturas y cartera real ───────────────────────────────────────────────
@@ -305,22 +350,70 @@ def gen_lotes(inventario, catalogo):
 
 
 # ── 5. El punto de venta ─────────────────────────────────────────────────────
-def gen_punto_venta(cuentas, catalogo):
+def gen_punto_venta(cuentas, catalogo, ventas):
     """Lo que pasa DENTRO del bar, que es donde se gana o se pierde la marca.
 
-    Tres cosas que el ERP no puede saber y el vendedor sí, si se le pregunta en
-    la visita: a qué precio lo pone en carta, qué competencia está en la barra y
-    qué material nuestro tiene. Con eso se explica por qué dos cuentas parecidas
-    rotan distinto — y hoy esa explicación no existe.
+    Cuatro cosas que el ERP no puede saber y el vendedor sí, si se le pregunta
+    en la visita: a qué precio lo pone en carta, qué competencia está en la
+    barra, qué material nuestro tiene y hace cuánto no mira ese estante. Con eso
+    se explica por qué dos cuentas parecidas rotan distinto.
+
+    Tres decisiones de construcción, y las tres existen porque sin ellas el
+    módulo enseña hallazgos que no sobreviven una pregunta:
+
+    · **La plata está anclada al ERP.** `rotacion_mes` no sale de la rotación de
+      la red repartida como si fuera de cada cuenta —eso daba diez veces la
+      venta de la empresa—: sale de lo que `ventas_cuenta_mes` dice que esa
+      cuenta compró el último mes, repartido entre las referencias de su carta.
+    · **`pop`, `competencia` y el chequeo del estante mueven la rotación.** Si
+      se sortean aparte, no hay nada que encontrar y los «hallazgos» del módulo
+      son ruido con formato de conclusión.
+    · **`visitada_hace_dias` es una visita, no un número al azar.** Hay una
+      fecha por CUENTA —que gira alrededor de la cadencia pactada en
+      `frec_visita_mes`— y un chequeo por REFERENCIA, que puede ser mucho más
+      viejo: el vendedor entra, levanta el pedido de lo que ya rota y no mira el
+      resto del estante. Ese es el punto ciego de segundo orden del módulo.
+
+    Usa su propio generador aleatorio, y no el compartido, para que el archivo
+    se pueda regenerar solo sin arrastrar el resto de la corrida.
     """
+    rng = np.random.default_rng(20260831)
     top = catalogo.nlargest(40, "unidades_90d")
+
+    ult = ventas[ventas["mes"] == ventas["mes"].max()]
+    neto = ult.groupby("cuenta_id")["neto"].sum()
+    neto_tipico = float(neto.median())
+
+    pop_n = [x[0] for x in POP]
+    pop_p = [x[1] for x in POP]
+    pop_f = {x[0]: x[2] for x in POP}
+    com_n = [x[0] for x in COMPETENCIA]
+    com_p = [x[1] for x in COMPETENCIA]
+    com_f = {x[0]: x[2] for x in COMPETENCIA}
+
     filas = []
     for _, c in cuentas.iterrows():
-        for _, p in top.sample(int(RNG.integers(3, 9))).iterrows():
-            sugerido = p["pvp_mercado"]
-            # El precio en carta de un bar va con un margen enorme sobre el PVP
-            carta = sugerido * RNG.uniform(1.8, 3.6)
-            rota = max(0, RNG.normal(p["unidades_90d"] / 90 * 0.6, 3))
+        # La postura de precio es de la cuenta, no de la referencia: un bar
+        # caro es caro en toda la carta. Por eso el mismo producto aparece a
+        # precios distintos en dos barras de la misma zona.
+        postura = float(rng.uniform(0.86, 1.16))
+        cadencia = 30 / max(float(c["frec_visita_mes"]), 0.1)
+        visita = int(np.clip(round(cadencia * rng.uniform(0.5, 2.2)), 2, 110))
+        refs = top.sample(int(rng.integers(3, 9)),
+                          random_state=int(rng.integers(1_000_000_000)))
+        for j, (_, p) in enumerate(refs.iterrows()):
+            sugerido = float(p["pvp_mercado"])
+            carta = (sugerido * MARGEN_CARTA.get(p["categoria"], 2.2)
+                     * postura * float(rng.normal(1, 0.05)))
+            carta = float(np.clip(carta, sugerido * 1.45, sugerido * 4.2))
+            # La primera referencia es la que el vendedor sí miró en la última
+            # visita: garantiza que el mínimo por cuenta ES la fecha de visita.
+            if j == 0 or rng.random() < 0.55:
+                chequeo = visita
+            else:
+                chequeo = int(min(round(visita * rng.uniform(1.6, 4.2)), 190))
+            pop = str(rng.choice(pop_n, p=pop_p))
+            comp = str(rng.choice(com_n, p=com_p))
             filas.append({
                 "cuenta_id": c["cuenta_id"], "nombre": c["nombre"],
                 "canal": c["canal"], "ciudad": c["ciudad"], "zona": c["zona"],
@@ -329,13 +422,35 @@ def gen_punto_venta(cuentas, catalogo):
                 "pvp_sugerido": round(sugerido),
                 "precio_carta": round(carta),
                 "sobreprecio_pct": round((carta / sugerido - 1) * 100, 0),
-                "rotacion_mes": round(rota * 30, 1),
-                "pop": str(RNG.choice(POP, p=[.09, .17, .14, .11, .06, .13, .30])),
-                "competencia": str(RNG.choice(COMPETENCIA,
-                                              p=[.19, .16, .11, .09, .07, .38])),
-                "visitada_hace_dias": int(RNG.integers(2, 75)),
+                "pop": pop, "competencia": comp,
+                "visitada_hace_dias": chequeo,
+                # Cuánta plata de la carta se lleva esta referencia. Va con la
+                # rotación de la red pero MUY comprimida: dentro de una misma
+                # barra ningún renglón se lleva cien veces lo del de al lado,
+                # y sin comprimir el índice terminaba midiendo qué SKU le tocó
+                # a cada cuenta en el sorteo y nada más.
+                "_peso": (float(p["unidades_90d"]) / 90 * 30 * sugerido) ** 0.35,
+                "_mult": (pop_f[pop] * com_f[comp]
+                          * float(np.clip(1.18 - 0.0070 * chequeo, 0.58, 1.18))
+                          * float(rng.lognormal(0, 0.16))),
             })
-    return pd.DataFrame(filas)
+
+    d = pd.DataFrame(filas)
+    # El multiplicador se centra en 1 para que no infle ni desinfle la red: lo
+    # que hace es repartir rotación entre referencias y entre barras, no
+    # inventarla. Una cuenta bien atendida sí termina comprando por encima de
+    # su ancla, y una abandonada por debajo — que es el punto del módulo.
+    d["_mult"] /= d["_mult"].mean()
+    objetivo = d["cuenta_id"].map(neto).fillna(neto_tipico) * PARTE_DE_LA_CARTA
+    factor = objetivo / d.groupby("cuenta_id")["_peso"].transform("sum")
+    d["rotacion_mes"] = (d["_peso"] * factor * d["_mult"]
+                         / d["pvp_sugerido"]).round(1)
+
+    # Las referencias muertas no son al azar tampoco: se mueren donde no hay
+    # material, donde está el competidor duro y donde nadie mira el estante.
+    p_muerta = np.clip(0.17 - 0.34 * (d["_mult"] - 1), 0.02, 0.62)
+    d.loc[rng.random(len(d)) < p_muerta, "rotacion_mes"] = 0.0
+    return d.drop(columns=["_mult", "_peso"])
 
 
 # ── 6. Presupuesto ───────────────────────────────────────────────────────────
@@ -433,7 +548,7 @@ def main():
     qb = gen_quiebres(ventas, cat, cuentas)
     dev = gen_devoluciones(ventas, cat, cuentas)
     lotes = gen_lotes(inv, cat)
-    pdv = gen_punto_venta(cuentas, cat)
+    pdv = gen_punto_venta(cuentas, cat, ventas)
     pres = gen_presupuesto(ventas, fin)
     comp = gen_compromisos(cuentas)
 

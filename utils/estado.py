@@ -110,8 +110,18 @@ def cerrar_compromiso(cid: str, resultado: str) -> None:
 
 def nuevo_compromiso(texto: str, dueno: str, dias: int = 14,
                      valor: float = 0.0, origen: str = "Manual") -> str:
+    # El id salía de contar los compromisos, y contar no sirve cuando algo se
+    # borra: `olvidar()` quita el `D-clave` de una decisión, el contador baja y
+    # el siguiente compromiso nace con un id que YA existe y sobrescribe al
+    # anterior, sin error y sin aviso. Con el comité del lunes escribiendo un
+    # registro por cada cierre dejó de ser una rareza teórica: la colisión se
+    # llevaría por delante un resultado ya escrito y el compromiso volvería a
+    # aparecer en rojo como si nunca se hubiera cerrado.
     d = _leer()
-    cid = f"M-{len(d['compromisos']) + 1:03d}"
+    n = len(d["compromisos"]) + 1
+    while f"M-{n:03d}" in d["compromisos"]:
+        n += 1
+    cid = f"M-{n:03d}"
     d["compromisos"][cid] = {
         "compromiso": texto, "dueno": dueno, "origen": origen,
         "creado": ahora()[:10], "valor": valor,

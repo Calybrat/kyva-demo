@@ -213,9 +213,9 @@ def render():
     # ── El costo oculto ─────────────────────────────────────────────────────
     # Se mide por CATEGORÍA, no por SKU, y es deliberado: el mesero no pide
     # «KY-0302», pide tequila. Al bar le da igual la referencia exacta; lo que
-    # aprende es que a KYVA no le pida tequila. Medido por SKU aparece un solo
-    # caso en seis meses y el riesgo se ve inexistente; medido por categoría son
-    # veintiséis, que es lo que de verdad está pasando.
+    # aprende es que a KYVA no le pida tequila. En la ventana completa, medido
+    # por SKU aparece un solo caso y el riesgo se ve inexistente; medido por
+    # categoría son veintiséis, que es lo que de verdad está pasando.
     q = q.copy()
     q["precio_implicito"] = q["valor_perdido"] / q["faltantes"].replace(0, np.nan)
     # El valor de lo pedido se calcula LÍNEA A LÍNEA y después se suma. Antes

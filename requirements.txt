@@ -22,4 +22,9 @@ numpy>=1.24,<3
 # usa, pero fijarlo evita que alguien copie un tutorial viejo y reviente.
 plotly>=6.0,<7
 
+# Excel para la junta. Python puro, sin librerias del sistema: eso es lo que
+# lo hace desplegable en Streamlit Cloud sin packages.txt. weasyprint, la
+# alternativa obvia para PDF, exige Pango y por eso quedo descartada.
+XlsxWriter>=3.2,<4
+
 anthropic>=0.25.0

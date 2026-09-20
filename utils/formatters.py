@@ -343,7 +343,14 @@ def kpi(label: str, value: str, delta: str = "", delta_good: bool = True,
 
 
 def panel(titulo: str, cuerpo_html: str, icono: str = "", tono: str = "azul") -> str:
-    """Panel de lectura del dato: qué dice y qué habría que decidir."""
+    """Panel de lectura del dato: qué dice y qué habría que decidir.
+
+    El `<p>` del encabezado se había quedado vacío y con eso las 27 pantallas
+    perdían el titular del panel —justo la frase en la que cada módulo apuesta
+    su tesis— y mostraban el cuerpo empezando en el aire. `icono` sigue sin
+    dibujarse, por la misma razón que en `kpi`: veintisiete emoji distintos son
+    veintisiete familias tipográficas peleando entre sí.
+    """
     borde = {"azul": PALIDO, "alerta": "#EFC3C4", "ok": "#BFE3D5",
              "naranja": "#F1D3B0"}.get(tono, PALIDO)
     fondo = {"azul": FONDO_SUAVE, "alerta": "#FBF0F0", "ok": "#EEF8F4",
@@ -352,7 +359,7 @@ def panel(titulo: str, cuerpo_html: str, icono: str = "", tono: str = "azul") ->
     <div style="background:{fondo};border:1px solid {borde};border-radius:16px;
       padding:16px 19px;margin:6px 0 2px">
       <p style="font-size:13.5px;font-weight:700;color:{TINTA};margin:0 0 8px;
-        font-family:Montserrat,sans-serif"></p>
+        font-family:Montserrat,sans-serif">{titulo}</p>
       <div style="font-size:13.5px;color:#3E4260;margin:0;line-height:1.7">
         {cuerpo_html}</div>
     </div>"""
