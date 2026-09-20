@@ -18,7 +18,10 @@ st.set_page_config(
 # El demo es de acceso libre: solo se deja constancia de la visita.
 registrar_visita()
 
-st.markdown(CSS + HEADER_CSS + CSS_PRODUCTO, unsafe_allow_html=True)
+# El orden importa: los tokens van AL FINAL para ganar por cascada sin tener
+# que subir especificidad a golpe de !important en las reglas anteriores.
+from utils.diseno import tokens_css
+st.markdown(CSS + HEADER_CSS + CSS_PRODUCTO + tokens_css(), unsafe_allow_html=True)
 
 # Agrupado por la PREGUNTA que se hace el equipo de KYVA, no por el área que
 # produce el dato. KYVA gana plata por cuatro vías con márgenes muy distintos

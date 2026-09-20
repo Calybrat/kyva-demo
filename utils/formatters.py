@@ -311,35 +311,23 @@ def kpi(label: str, value: str, delta: str = "", delta_good: bool = True,
     `referencia` dice contra qué comparar ("Sano en retail: 20–25%") y `ayuda`
     explica en una línea qué significa. Un número solo no le sirve a nadie.
     """
-    # El parámetro `icon` se conserva por compatibilidad —lo pasan las 27
-    # pantallas— pero YA NO SE DIBUJA. Un emoji distinto por tarjeta viene de
-    # una familia tipográfica distinta, renderiza diferente en Mac y en
-    # Windows, y mete color saturado fuera de la paleta. Es la marca más
-    # reconocible de un panel generado por IA. Para volver a mostrarlos, basta
-    # con descomentar `icon_html` abajo.
+    # `icon` se conserva por compatibilidad pero no se dibuja: un emoji por
+    # tarjeta viene de una familia tipográfica distinta y mete color fuera de
+    # la paleta.
+    #
+    # Y el cambio de fondo: `ayuda` y `referencia` YA NO van dentro de la
+    # tarjeta. Un párrafo explicativo dentro de un indicador es, según la
+    # investigación de sistemas de diseño, el defecto que más abarata un panel
+    # —y este tenía hasta tres líneas de texto en cada una de las cuatro—.
+    # Van al tooltip de un icono de 14px. La anatomía canónica es: etiqueta,
+    # cifra, delta. Nada más.
     color = GOOD if delta_good else BAD
-    delta_html = (f'<p style="font-size:12px;font-weight:600;color:{color};'
-                  f'margin:6px 0 0">{delta}</p>' if delta else "")
-    ref_html = (f'<p style="font-size:10.5px;color:{ACENTO};margin:7px 0 0;'
-                f'font-weight:600">{referencia}</p>' if referencia else "")
-    ayuda_html = (f'<p style="font-size:11px;color:{MUTED};margin:7px 0 0;'
-                  f'line-height:1.45">{ayuda}</p>' if ayuda else "")
-    # `height:100%` en la tarjeta no bastaba: los hijos de stColumn no se
-    # estiran si no se les dice, y las cuatro quedaban con el borde inferior
-    # desparejo cuando los textos de ayuda tenían largos distintos. El arreglo
-    # de verdad está en CSS_PRODUCTO; aquí se completa con flex.
-    return f"""
-    <div class="ky-kpi" style="background:{SURF};border:1px solid {BORDER};
-      border-radius:12px;padding:16px 18px;height:100%;
-      display:flex;flex-direction:column;
-      box-shadow:0 1px 2px rgba(14,17,58,.04)">
-      <p style="font-size:10px;letter-spacing:.13em;text-transform:uppercase;
-        color:{MUTED};margin:0;font-weight:700;font-family:Montserrat,sans-serif">{label}</p>
-      <p style="font-size:28px;font-weight:600;color:{TINTA};margin:7px 0 0;
-        letter-spacing:-.02em;line-height:1.08;font-family:Montserrat,sans-serif;
-        font-variant-numeric:tabular-nums">{value}</p>
-      {delta_html}{ref_html}{ayuda_html}
-    </div>"""
+    tip = " · ".join(x for x in (ayuda, referencia) if x).replace('"', "&quot;")
+    ayuda_html = (f'<span class="ky-ayuda" title="{tip}">?</span>' if tip else "")
+    delta_html = (f'<p class="ky-dlt" style="color:{color}">{delta}</p>'
+                  if delta else "")
+    return (f'<div class="ky-t ky-kpi"><p class="ky-lbl">{label}{ayuda_html}</p>'
+            f'<p class="ky-val">{value}</p>{delta_html}</div>')
 
 
 def panel(titulo: str, cuerpo_html: str, icono: str = "", tono: str = "azul") -> str:
@@ -609,11 +597,16 @@ label, .stSelectbox label, .stSlider label {{
 
 /* Encabezado de sección: versalitas con hairline, no un <b> suelto. */
 .ky-sub {{
-  font:600 12px/1.2 Montserrat,sans-serif !important; letter-spacing:.09em !important;
-  text-transform:uppercase; color:{CLARO} !important;
-  margin:0 0 11px !important; padding-bottom:8px;
-  border-bottom:1px solid var(--linea);
+  font:600 13px/18px Montserrat,sans-serif !important; letter-spacing:.08em !important;
+  text-transform:uppercase; color:{TINTA} !important;
+  /* 48px de aire ARRIBA: es lo que separa una sección de la anterior, y lo
+     que faltaba para que el panel dejara de verse condensado. */
+  margin:48px 0 16px !important; padding-bottom:12px;
+  border-bottom:1px solid #EBE8EE;
 }}
+/* La primera sección de la pantalla no necesita el aire de arriba. */
+[data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"]
+  > [data-testid="stElementContainer"]:nth-of-type(-n+4) .ky-sub {{ margin-top:24px !important; }}
 </style>
 """
 
@@ -655,35 +648,22 @@ def md(texto: str) -> str:
 
 def kpi_hero(label: str, value: str, delta: str = "", delta_good: bool = True,
              apoyo: str = "", ayuda: str = "") -> str:
-    """La única cifra grande de la pantalla. Una por módulo.
+    """El titular. Misma anatomía que los demás, en navy y al doble de tamaño.
 
-    De la auditoría de diseño, y es la crítica central:
-
-        «Las cuatro tarjetas pesan exactamente lo mismo: mismo ancho, misma
-        cifra. Si la pantalla se llama Centro de decisiones y el subtítulo dice
-        "ordenado por la plata que cuesta no decidirlo", entonces esa plata es
-        el titular y las otras tres son contexto.»
-
-    Tenía razón. Cuatro cajas idénticas no son una jerarquía: el ojo no sabe
-    dónde empezar, y como todas pesan igual, ninguna es la respuesta. Esta va
-    en navy sólido y al triple de tamaño, no un 15% más grande.
+    La cifra manda por TAMAÑO y por fondo, no por llevar más texto. La versión
+    anterior metía un párrafo de cinco líneas dentro y eso hacía dos cosas
+    malas a la vez: abarataba la tarjeta y la estiraba al doble de alto que sus
+    apoyos, dejando un vacío enorme al lado. Todo eso va al tooltip.
     """
-    color = "#7FD1A8" if delta_good else "#F3A6A7"
-    d = (f'<p style="font:600 13px/1.4 Montserrat,sans-serif;color:{color};'
-         f'margin:10px 0 0">{delta}</p>' if delta else "")
-    a = (f'<p style="font-size:12px;color:rgba(229,225,230,.72);margin:8px 0 0;'
-         f'line-height:1.5">{apoyo}</p>' if apoyo else "")
-    tip = f' title="{ayuda}"' if ayuda else ""
-    return f"""
-    <div class="ky-hero-card"{tip} style="background:{PRIMARIO};color:#fff;
-      border-radius:12px;padding:22px 26px;height:100%;display:flex;
-      flex-direction:column;justify-content:center">
-      <p style="font:700 10px/1.2 Montserrat,sans-serif;letter-spacing:.15em;
-        text-transform:uppercase;color:rgba(229,225,230,.62);margin:0">{label}</p>
-      <p style="font:600 46px/1.02 Montserrat,sans-serif;letter-spacing:-.025em;
-        margin:12px 0 0;font-variant-numeric:tabular-nums">{value}</p>
-      {d}{a}
-    </div>"""
+    col = "#7FD1A8" if delta_good else "#F3A6A7"
+    tip = " · ".join(x for x in (apoyo, ayuda) if x).replace('"', "&quot;")
+    a = (f'<span class="ky-ayuda" title="{tip}" '
+         f'style="border-color:rgba(229,225,230,.35);color:rgba(229,225,230,.7)">?</span>'
+         if tip else "")
+    d = f'<p class="ky-dlt" style="color:{col}">{delta}</p>' if delta else ""
+    return (f'<div class="ky-t ky-t--hero">'
+            f'<p class="ky-lbl" style="color:rgba(229,225,230,.6)">{label}{a}</p>'
+            f'<p class="ky-val ky-val--hero">{value}</p>{d}</div>')
 
 
 def fila_kpi(titular_kpi: str, apoyos: list) -> None:
